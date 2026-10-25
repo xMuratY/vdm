@@ -51,7 +51,8 @@ jobs:
 
       - name: Smoke test
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb >/dev/null
+          # The runner has no desktop; desktops ship libxkbcommon-x11 already.
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libxkbcommon-x11-0 >/dev/null
           xvfb-run -a target/release/vdm-gui --data-dir "$RUNNER_TEMP/smoke" \
             --screenshot "$RUNNER_TEMP/smoke-linux.png" --screenshot-delay 6
           test -s "$RUNNER_TEMP/smoke-linux.png"

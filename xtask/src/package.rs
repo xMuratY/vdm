@@ -167,6 +167,13 @@ sed "s|@DIR@|$dest|g" "$here/share/applications/{LINUX_ID}.desktop" >"$data/appl
 if command -v update-desktop-database >/dev/null 2>&1; then update-desktop-database -q "$data/applications" || true; fi
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then gtk-update-icon-cache -q -t "$data/icons/hicolor" || true; fi
 
+# The window needs libxkbcommon-x11, which desktops almost always have.
+if command -v ldconfig >/dev/null 2>&1 && ! ldconfig -p 2>/dev/null | grep -q 'libxkbcommon-x11\.so'; then
+  echo "Note: Vibe needs libxkbcommon-x11. Install it with your package manager, for example:" >&2
+  echo "  sudo apt install libxkbcommon-x11-0     (Debian, Ubuntu)" >&2
+  echo "  sudo dnf install libxkbcommon-x11       (Fedora)" >&2
+fi
+
 # Lets the browser extension reach Vibe.
 if ! "$dest/vdm-nmhost" install >/dev/null; then
   echo "Note: the browser connection was not set up; run: $dest/vdm-nmhost install" >&2
@@ -424,6 +431,9 @@ mod tests {
         // The autostart entry the app writes is removed too.
         assert!(uninstall.contains("autostart/vibe-download-manager.desktop"));
         assert!(install.contains(r#"${XDG_DATA_HOME:-$HOME/.local/share}"#));
+        // The one library a desktop might lack is named, with how to get it.
+        assert!(install.contains(r"grep -q 'libxkbcommon-x11\.so'"));
+        assert!(install.contains("sudo apt install libxkbcommon-x11-0"));
     }
 
     #[test]
