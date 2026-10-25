@@ -71,13 +71,6 @@ finds, and stays out of the way in the tray.
 - A command-line client (`vdm`) for scripts and servers.
 - Silent automatic updates on Windows.
 
-<div align="center">
-  <img src="docs/images/add-dark.png" alt="Add download dialog, dark theme" width="49%">
-  <img src="docs/images/settings-light.png" alt="Settings, light theme" width="49%">
-  <img src="docs/images/columns-dark.png" alt="Column menu, dark theme" width="49%">
-  <img src="docs/images/installer-options.png" alt="Installer options" width="40%">
-</div>
-
 ## Install
 
 ### Windows
@@ -167,10 +160,6 @@ details.
 English, Español, Français, Deutsch, Português (Brasil), Italiano, Русский, Türkçe, Polski,
 简体中文, 日本語 and 한국어. Vibe picks your system language on first start; change it any
 time in **Settings → Appearance → Language**.
-
-<div align="center">
-  <img src="docs/images/main-japanese.png" alt="Vibe Download Manager in Japanese" width="70%">
-</div>
 
 To add or improve a translation, edit the files in
 [`crates/vdm-gui/locales/`](crates/vdm-gui/locales) (the app) and
