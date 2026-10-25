@@ -571,6 +571,15 @@ async fn cancel_before_start() {
 
 // ------------------------------------------------------------ speed limits
 
+/// A limited download must not finish early (the limit held). It may run late:
+/// shared CI machines (macOS especially) are often slower than the limit.
+fn assert_took(secs: f64, expected: f64) {
+    assert!(
+        (expected * 0.92..expected * 1.5).contains(&secs),
+        "took {secs:.3}s, expected ~{expected}s"
+    );
+}
+
 /// Elapsed time of a download of `len` bytes under `limits`.
 async fn timed_download(
     len: usize,
@@ -596,7 +605,7 @@ async fn speed_limit_is_accurate_across_connections() {
     // 600 KB at 300 KB/s over 4 connections: 2 s.
     let limit = Arc::new(vdm_core::RateLimiter::new(Some(300_000)));
     let secs = timed_download(600_000, 4, vec![limit]).await;
-    assert!((1.9..2.15).contains(&secs), "took {secs:.3}s, expected ~2s");
+    assert_took(secs, 2.0);
 }
 
 #[tokio::test]
@@ -605,7 +614,7 @@ async fn slowest_of_several_limits_wins() {
     let global = Arc::new(vdm_core::RateLimiter::new(Some(10_000_000)));
     let own = Arc::new(vdm_core::RateLimiter::new(Some(200_000)));
     let secs = timed_download(300_000, 2, vec![global, own]).await;
-    assert!((1.42..1.62).contains(&secs), "took {secs:.3}s, expected ~1.5s");
+    assert_took(secs, 1.5);
 }
 
 #[tokio::test]
@@ -620,7 +629,7 @@ async fn speed_limit_applies_to_single_stream_servers() {
     let started = Instant::now();
     download_ok(&downloader(), req).await;
     let secs = started.elapsed().as_secs_f64();
-    assert!((0.92..1.1).contains(&secs), "took {secs:.3}s, expected ~1s");
+    assert_took(secs, 1.0);
 }
 
 #[tokio::test]

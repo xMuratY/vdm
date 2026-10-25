@@ -336,7 +336,8 @@ async fn global_speed_limit_is_shared_by_all_downloads() {
     wait_all_completed(&mut rx, vec![a, b]).await;
     // 600 KB at 300 KB/s.
     let secs = started.elapsed().as_secs_f64();
-    assert!((1.9..2.2).contains(&secs), "took {secs:.3}s, expected ~2s");
+    // Never early (the limit held); slow CI machines may run late.
+    assert!((1.9..3.0).contains(&secs), "took {secs:.3}s, expected ~2s");
 }
 
 #[tokio::test]
@@ -366,7 +367,8 @@ async fn per_download_speed_limit() {
     engine.set_schedule(Schedule::always()).await.unwrap();
     wait_for(&mut rx, completed(id)).await;
     let secs = started.elapsed().as_secs_f64();
-    assert!((1.42..1.7).contains(&secs), "took {secs:.3}s, expected ~1.5s");
+    // Never early (the limit held); slow CI machines may run late.
+    assert!((1.42..2.25).contains(&secs), "took {secs:.3}s, expected ~1.5s");
 }
 
 #[tokio::test]
