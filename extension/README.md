@@ -77,7 +77,7 @@ that integration off for downloads to reach Vibe.
 From the repository root:
 
 ```
-node --test extension/test
+node --test "extension/test/*.test.js"
 ```
 
 Regenerate the icons (the output is deterministic):

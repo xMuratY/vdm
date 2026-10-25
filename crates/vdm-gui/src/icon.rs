@@ -178,7 +178,8 @@ mod tests {
     fn edge_is_anti_aliased_and_not_white() {
         let size = 256;
         let px = icon_rgba(size);
-        let partial: Vec<&[u8]> = px.chunks_exact(4).filter(|p| p[3] > 0 && p[3] < 255).collect();
+        let partial: Vec<&[u8; 4]> =
+            px.as_chunks::<4>().0.iter().filter(|p| p[3] > 0 && p[3] < 255).collect();
         assert!(!partial.is_empty(), "some edge pixels are partly transparent");
         assert!(partial.iter().all(|p| p[..3] != [255, 255, 255]), "strokes stay off the rim");
     }
@@ -187,7 +188,8 @@ mod tests {
     fn small_sizes_still_show_the_arrow() {
         let size = 16;
         let px = icon_rgba(size);
-        let bright = px.chunks_exact(4).filter(|p| p[0] > 230 && p[1] > 230 && p[2] > 230).count();
+        let bright =
+            px.as_chunks::<4>().0.iter().filter(|p| p[0] > 230 && p[1] > 230 && p[2] > 230).count();
         assert!(bright >= 6, "only {bright} white pixels at 16 px");
     }
 }

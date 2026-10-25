@@ -221,7 +221,7 @@ The programs land in `target/release/`:
 ```bash
 cargo test --workspace                                     # Rust tests
 cargo clippy --workspace --all-targets -- -D warnings      # lints
-node --test extension/test                                 # extension tests
+node --test "extension/test/*.test.js"                     # extension tests
 ```
 
 ### Releases
