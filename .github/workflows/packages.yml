@@ -1,0 +1,143 @@
+name: Packages
+
+# The Linux tarball and the macOS disk image, each started once in a headless
+# smoke test. Runs when the packaging changes, from the Release workflow, and
+# by hand: give a release tag (e.g. v0.1.0) to attach the packages to that
+# existing release; its app code must match this commit.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "xtask/src/package.rs"
+      - ".github/workflows/packages.yml"
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Attach to this existing release tag (empty to only build)
+        type: string
+        default: ""
+  workflow_call:
+    inputs:
+      release:
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  # Baked into the app as its update check address.
+  VDM_UPDATE_URL: https://github.com/${{ github.repository }}/releases/latest/download/latest.json
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Check the release matches this code
+        if: ${{ inputs.release }}
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          test "v$version" = "${{ inputs.release }}" || { echo "::error::version $version is not ${{ inputs.release }}"; exit 1; }
+          git diff --quiet "${{ inputs.release }}" HEAD -- crates Cargo.toml Cargo.lock \
+            || { echo "::error::the app changed since ${{ inputs.release }}; release a new version instead"; exit 1; }
+
+      - run: cargo xtask package
+
+      - name: Smoke test
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb >/dev/null
+          xvfb-run -a target/release/vdm-gui --data-dir "$RUNNER_TEMP/smoke" \
+            --screenshot "$RUNNER_TEMP/smoke-linux.png" --screenshot-delay 6
+          test -s "$RUNNER_TEMP/smoke-linux.png"
+          target/release/vdm --version
+          tar -tzvf dist/*.tar.gz
+
+      - name: Install and uninstall test
+        run: |
+          export HOME="$RUNNER_TEMP/home" && mkdir -p "$HOME"
+          unset XDG_DATA_HOME XDG_CONFIG_HOME
+          mkdir "$RUNNER_TEMP/unpacked" && tar -xzf dist/*.tar.gz -C "$RUNNER_TEMP/unpacked"
+          "$RUNNER_TEMP"/unpacked/*/install.sh
+          "$HOME/.local/bin/vdm" --version
+          grep -qx "Exec=\"$HOME/.local/lib/vibe-download-manager/vdm-gui\" %U" \
+            "$HOME/.local/share/applications/vibe-download-manager.desktop"
+          test -s "$HOME/.local/share/icons/hicolor/256x256/apps/vibe-download-manager.png"
+          test -s "$HOME/.config/google-chrome/NativeMessagingHosts/com.vdm.native.json"
+          "$HOME/.local/lib/vibe-download-manager/uninstall.sh"
+          test ! -e "$HOME/.local/lib/vibe-download-manager"
+          test ! -e "$HOME/.local/bin/vdm"
+          test ! -e "$HOME/.config/google-chrome/NativeMessagingHosts/com.vdm.native.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-linux
+          path: dist/*.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smoke-linux
+          path: ${{ runner.temp }}/smoke-linux.png
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - name: Check the release matches this code
+        if: ${{ inputs.release }}
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          test "v$version" = "${{ inputs.release }}" || { echo "::error::version $version is not ${{ inputs.release }}"; exit 1; }
+          git diff --quiet "${{ inputs.release }}" HEAD -- crates Cargo.toml Cargo.lock \
+            || { echo "::error::the app changed since ${{ inputs.release }}; release a new version instead"; exit 1; }
+
+      # rust-toolchain.toml pins "stable"; add the targets to it too.
+      - run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - run: cargo xtask package --target aarch64-apple-darwin --target x86_64-apple-darwin
+
+      - name: Smoke test
+        run: |
+          app="dist/stage-macos/image/Vibe Download Manager.app"
+          lipo -info "$app/Contents/MacOS/vdm-gui"
+          codesign --verify --deep --strict "$app"
+          "$app/Contents/MacOS/vdm-gui" --data-dir "$RUNNER_TEMP/smoke" \
+            --screenshot "$RUNNER_TEMP/smoke-macos.png" --screenshot-delay 6
+          test -s "$RUNNER_TEMP/smoke-macos.png"
+          "$app/Contents/MacOS/vdm" --version
+          hdiutil verify dist/*.dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-macos
+          path: dist/*.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smoke-macos
+          path: ${{ runner.temp }}/smoke-macos.png
+
+  # One job attaches both, so the two don't edit the release notes at once.
+  attach:
+    if: ${{ inputs.release }}
+    needs: [linux, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          merge-multiple: true
+          path: dist
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh .github/attach-to-release.sh "${{ inputs.release }}" dist/*

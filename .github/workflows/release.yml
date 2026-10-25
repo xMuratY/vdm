@@ -1,6 +1,7 @@
 name: Release
 
-# Push a tag like v0.2.0 (matching the workspace version) to publish a release.
+# Push a tag like v0.2.0 (matching the workspace version) to publish a release
+# with the Windows installer, the Linux and macOS packages and the extension.
 on:
   push:
     tags: ["v*"]
@@ -56,6 +57,29 @@ jobs:
           Get-ChildItem extension -Exclude test, README.md | Copy-Item -Destination $stage -Recurse
           Compress-Archive -Path "$stage\*" -DestinationPath "dist\VibeDownloadManager-extension-$version.zip"
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-windows
+          path: |
+            dist/*.msi
+            dist/*.zip
+            dist/latest.json
+
+  # Linux and macOS, built and smoke-tested in their own workflow.
+  packages:
+    uses: ./.github/workflows/packages.yml
+
+  publish:
+    needs: [windows, packages]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          merge-multiple: true
+          path: dist
+
       # The release notes are this version's section of CHANGELOG.md, followed
       # by the SHA-256 of each file so downloads can be checked.
       - name: Release notes
@@ -71,9 +95,9 @@ jobs:
           $notes.AddRange([string[]]$lines[($start + 1)..($end - 1)])
           $notes.AddRange([string[]]@(
             "", "### SHA-256", "",
-            "Check a download with ``Get-FileHash <file>`` in PowerShell.", "",
+            "Check a download with ``Get-FileHash <file>`` (Windows) or ``shasum -a 256 <file>`` (macOS, Linux).", "",
             "| File | SHA-256 |", "| --- | --- |"))
-          foreach ($file in Get-ChildItem dist\*.msi, dist\*.zip -File) {
+          foreach ($file in Get-ChildItem dist -File | Where-Object Name -ne "latest.json" | Sort-Object Name) {
             $notes.Add("| $($file.Name) | ``$((Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower())`` |")
           }
           $notes | Set-Content (Join-Path $env:RUNNER_TEMP "notes.md") -Encoding utf8
@@ -81,4 +105,4 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create ${{ github.ref_name }} dist/*.msi dist/*.zip dist/latest.json --title "Vibe Download Manager ${{ github.ref_name }}" --notes-file "${{ runner.temp }}/notes.md"
+        run: gh release create ${{ github.ref_name }} dist/* --title "Vibe Download Manager ${{ github.ref_name }}" --notes-file "${{ runner.temp }}/notes.md"

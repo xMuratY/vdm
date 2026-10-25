@@ -272,12 +272,12 @@ fn wix_arch(arch: &str) -> Result<&'static str> {
     })
 }
 
-fn workspace_root() -> PathBuf {
+pub(crate) fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).parent().expect("xtask is in the workspace").to_owned()
 }
 
 /// `version = "…"` from the workspace Cargo.toml.
-fn workspace_version(root: &Path) -> Result<String> {
+pub(crate) fn workspace_version(root: &Path) -> Result<String> {
     let text = std::fs::read_to_string(root.join("Cargo.toml"))?;
     let in_package = text.split("[workspace.package]").nth(1).context("no [workspace.package]")?;
     in_package
@@ -287,7 +287,7 @@ fn workspace_version(root: &Path) -> Result<String> {
         .context("no workspace version")
 }
 
-fn run_cmd(cmd: &mut Command) -> Result<()> {
+pub(crate) fn run_cmd(cmd: &mut Command) -> Result<()> {
     let shown = format!("{cmd:?}");
     let status = cmd.status().with_context(|| format!("could not run {shown}"))?;
     if !status.success() {

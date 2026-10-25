@@ -2,6 +2,7 @@
 
 mod dist;
 mod icons;
+mod package;
 mod site;
 
 use clap::{Parser, Subcommand};
@@ -21,6 +22,8 @@ enum Task {
     Dist(dist::Args),
     /// Build the website (GitHub Pages) from site/ into target/site.
     Site(site::Args),
+    /// Build the Linux tarball or the macOS disk image (on that system).
+    Package(package::Args),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -28,5 +31,6 @@ fn main() -> anyhow::Result<()> {
         Task::Icons => icons::run(),
         Task::Dist(args) => dist::run(args),
         Task::Site(args) => site::run(args),
+        Task::Package(args) => package::run(args),
     }
 }

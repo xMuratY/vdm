@@ -151,6 +151,11 @@ fn assets_dir() -> anyhow::Result<PathBuf> {
     Ok(root.join("assets").join("icons"))
 }
 
+/// The app icon at `size` pixels, as a PNG file.
+pub(crate) fn icon_png(size: u32) -> anyhow::Result<Vec<u8>> {
+    png_bytes(size, &icon::icon_rgba(size))
+}
+
 /// One RGBA image as a PNG file.
 fn png_bytes(size: u32, rgba: &[u8]) -> anyhow::Result<Vec<u8>> {
     let mut out = Vec::new();
