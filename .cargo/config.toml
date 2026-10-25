@@ -1,0 +1,3 @@
+[alias]
+# Release tasks: `cargo xtask icons`, `cargo xtask dist`.
+xtask = "run --package xtask --"

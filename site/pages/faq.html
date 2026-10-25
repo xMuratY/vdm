@@ -1,0 +1,21 @@
++++
+title = "Questions and answers"
+description = "Answers about Vibe Download Manager: is it free, is it safe, how resuming works, video downloads, browser integration, privacy and platforms."
+path = "/faq/"
+schema = "faq"
++++
+<section class="wrap page">
+  <h1>Questions and answers</h1>
+  <div class="faq">
+    <details><summary>Is Vibe really free?</summary><div><p>Yes. It's open source under the MIT or Apache 2.0 license: no price, no trial, no ads and no paid tier.</p></div></details>
+    <details><summary>Why are downloads faster?</summary><div><p>Many servers limit the speed of each connection. Vibe opens several connections to the same file, each fetching a different piece, and keeps them all busy by splitting the remaining work as pieces finish. On a fast line that often multiplies the speed. <a href="{{root}}blog/how-multi-connection-downloads-work/">Read how it works</a>.</p></div></details>
+    <details><summary>What happens if my connection drops or my PC restarts?</summary><div><p>Vibe saves progress as it goes. When you resume, it checks that the file on the server hasn't changed and continues from the last byte it wrote. If the file did change, it starts over rather than giving you a broken file.</p></div></details>
+    <details><summary>Can it download videos?</summary><div><p>It downloads HLS (<code>.m3u8</code>) and DASH (<code>.mpd</code>) streams that a page plays, including AES-128 encrypted ones, and joins them into one file with ffmpeg. It doesn't break DRM. Only download videos you have the right to save.</p></div></details>
+    <details><summary>Which browsers work with it?</summary><div><p>Chrome, Edge, Brave and other Chromium browsers, and Firefox 115 or later, through the Vibe extension.</p></div></details>
+    <details><summary>Does Vibe collect any data?</summary><div><p>No. There's no account, analytics or telemetry. The only network requests it makes are your downloads and, if you leave it on, a daily check for updates.</p></div></details>
+    <details><summary>Why does Windows warn about the installer?</summary><div><p>SmartScreen warns about installers that aren't code-signed by a known publisher yet. The source code is public and the release is built by GitHub Actions from it. Choose "More info", then "Run anyway".</p></div></details>
+    <details><summary>Does it need administrator rights?</summary><div><p>No. Vibe installs into your own user folder, which also lets updates install silently.</p></div></details>
+    <details><summary>Does it work on macOS or Linux?</summary><div><p>It builds and runs from source on both. Ready-made packages are on the roadmap.</p></div></details>
+    <details><summary>How can I help?</summary><div><p>Report bugs and ideas on <a href="{{github}}/issues">GitHub</a>, improve a translation, or send a pull request. Telling a friend helps too.</p></div></details>
+  </div>
+</section>

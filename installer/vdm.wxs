@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Vibe Download Manager installer (WiX 5, with the UI and Util extensions).
+  Built by `cargo xtask dist`, which passes:
+    Version   - product version, e.g. 0.1.0
+    BinDir    - folder with vdm-gui.exe, vdm.exe and vdm-nmhost.exe
+    StageDir  - folder with the native-messaging manifests
+    IconPath  - assets/icons/vdm.ico
+  Per-user: installs to %LOCALAPPDATA%\Programs\Vibe Download Manager without admin rights,
+  which also lets updates install silently.
+
+  The options page sets DESKTOPSHORTCUT, STARTMENUSHORTCUT and AUTOSTART ("1" or empty).
+  Each choice is saved under HKCU\Software\Vibe Download Manager as "1" or "0" and read back
+  on the next install, so a silent update (msiexec /qn) keeps what the user picked. The app's
+  own "Start when I sign in" setting writes the same AutoStart value.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="Vibe Download Manager"
+      Manufacturer="Vibe"
+      Version="$(Version)"
+      UpgradeCode="5B9F1C2E-3A47-4D8E-9F21-6C0A7E4B3D15"
+      Scope="perUser"
+      Compressed="yes">
+
+    <!-- Installing any version replaces the installed one; same version reinstalls. -->
+    <MajorUpgrade
+        AllowSameVersionUpgrades="yes"
+        DowngradeErrorMessage="A newer version of Vibe Download Manager is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="vdm.ico" SourceFile="$(IconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="vdm.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <!-- ============================================================ options -->
+
+    <!-- On by default; a saved "0" from an earlier install turns them off. -->
+    <Property Id="DESKTOPSHORTCUT" Value="1" Secure="yes">
+      <RegistrySearch Id="SavedDesktopShortcut" Root="HKCU" Key="Software\Vibe Download Manager"
+                      Name="DesktopShortcut" Type="raw" />
+    </Property>
+    <Property Id="STARTMENUSHORTCUT" Value="1" Secure="yes">
+      <RegistrySearch Id="SavedStartMenuShortcut" Root="HKCU" Key="Software\Vibe Download Manager"
+                      Name="StartMenuShortcut" Type="raw" />
+    </Property>
+    <Property Id="AUTOSTART" Value="1" Secure="yes">
+      <RegistrySearch Id="SavedAutoStart" Root="HKCU" Key="Software\Vibe Download Manager"
+                      Name="AutoStart" Type="raw" />
+    </Property>
+    <!-- A checkbox is ticked whenever its property has any value, so "0" must become empty. -->
+    <SetProperty Id="DESKTOPSHORTCUT" Action="ClearDesktopShortcut" Value="{}" After="AppSearch"
+                 Sequence="both" Condition="DESKTOPSHORTCUT = &quot;0&quot;" />
+    <SetProperty Id="STARTMENUSHORTCUT" Action="ClearStartMenuShortcut" Value="{}" After="AppSearch"
+                 Sequence="both" Condition="STARTMENUSHORTCUT = &quot;0&quot;" />
+    <SetProperty Id="AUTOSTART" Action="ClearAutoStart" Value="{}" After="AppSearch"
+                 Sequence="both" Condition="AUTOSTART = &quot;0&quot;" />
+    <!-- What gets saved: "1" or "0" (never empty, which would read back as the default). -->
+    <SetProperty Id="SAVE_DESKTOP" Action="SaveDesktopOn" Value="1" Before="InstallInitialize"
+                 Sequence="execute" Condition="DESKTOPSHORTCUT" />
+    <SetProperty Id="SAVE_DESKTOP" Action="SaveDesktopOff" Value="0" Before="InstallInitialize"
+                 Sequence="execute" Condition="NOT DESKTOPSHORTCUT" />
+    <SetProperty Id="SAVE_STARTMENU" Action="SaveStartMenuOn" Value="1" Before="InstallInitialize"
+                 Sequence="execute" Condition="STARTMENUSHORTCUT" />
+    <SetProperty Id="SAVE_STARTMENU" Action="SaveStartMenuOff" Value="0" Before="InstallInitialize"
+                 Sequence="execute" Condition="NOT STARTMENUSHORTCUT" />
+    <SetProperty Id="SAVE_AUTOSTART" Action="SaveAutoStartOn" Value="1" Before="InstallInitialize"
+                 Sequence="execute" Condition="AUTOSTART" />
+    <SetProperty Id="SAVE_AUTOSTART" Action="SaveAutoStartOff" Value="0" Before="InstallInitialize"
+                 Sequence="execute" Condition="NOT AUTOSTART" />
+
+    <!-- ============================================================ files -->
+
+    <!-- %LOCALAPPDATA%\Programs\Vibe Download Manager: per-user, no admin rights needed. -->
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="UserPrograms" Name="Programs">
+      <Directory Id="INSTALLFOLDER" Name="Vibe Download Manager">
+
+        <Component Id="App" Guid="A904F2EF-BF3B-4CD3-9378-9A637580B394">
+          <File Id="VdmGui" Source="$(BinDir)\vdm-gui.exe" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="InstallDir"
+                         Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="DesktopShortcut"
+                         Type="string" Value="[SAVE_DESKTOP]" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="StartMenuShortcut"
+                         Type="string" Value="[SAVE_STARTMENU]" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="AutoStart"
+                         Type="string" Value="[SAVE_AUTOSTART]" />
+          <RemoveFolder Id="RemoveInstallFolder" On="uninstall" />
+        </Component>
+
+        <Component Id="Cli" Guid="B3785DC2-C4C3-43D5-84DB-C398F63E81F3">
+          <File Id="VdmCli" Source="$(BinDir)\vdm.exe" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="Cli"
+                         Type="integer" Value="1" KeyPath="yes" />
+          <!-- `vdm` on PATH for new terminals. -->
+          <Environment Id="Path" Name="PATH" Value="[INSTALLFOLDER]" Part="last"
+                       Action="set" System="no" Permanent="no" />
+        </Component>
+
+        <!-- Browser integration: the host and its manifests ("path" is relative
+             to the manifest, which both Chrome and Firefox allow on Windows). -->
+        <Component Id="NativeHost" Guid="88D9DB17-2D8A-47AE-B9CF-960D99E759F1">
+          <File Id="VdmNmHost" Source="$(BinDir)\vdm-nmhost.exe" />
+          <File Id="ChromeManifest" Source="$(StageDir)\com.vdm.native.chrome.json" />
+          <File Id="FirefoxManifest" Source="$(StageDir)\com.vdm.native.firefox.json" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="NativeHost"
+                         Type="integer" Value="1" KeyPath="yes" />
+          <RegistryValue Root="HKCU" Key="Software\Google\Chrome\NativeMessagingHosts\com.vdm.native"
+                         Type="string" Value="[INSTALLFOLDER]com.vdm.native.chrome.json" />
+          <RegistryValue Root="HKCU" Key="Software\Microsoft\Edge\NativeMessagingHosts\com.vdm.native"
+                         Type="string" Value="[INSTALLFOLDER]com.vdm.native.chrome.json" />
+          <RegistryValue Root="HKCU" Key="Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\com.vdm.native"
+                         Type="string" Value="[INSTALLFOLDER]com.vdm.native.chrome.json" />
+          <RegistryValue Root="HKCU" Key="Software\Chromium\NativeMessagingHosts\com.vdm.native"
+                         Type="string" Value="[INSTALLFOLDER]com.vdm.native.chrome.json" />
+          <RegistryValue Root="HKCU" Key="Software\Mozilla\NativeMessagingHosts\com.vdm.native"
+                         Type="string" Value="[INSTALLFOLDER]com.vdm.native.firefox.json" />
+        </Component>
+
+        <!-- Start at sign-in, hidden in the tray. The app's setting adds or removes the same value. -->
+        <Component Id="AutoStartEntry" Condition="AUTOSTART">
+          <RegistryValue Root="HKCU" Key="Software\Microsoft\Windows\CurrentVersion\Run"
+                         Name="Vibe Download Manager" Type="string"
+                         Value="&quot;[INSTALLFOLDER]vdm-gui.exe&quot; --minimized" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="AutoStartEntry"
+                         Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut" Condition="STARTMENUSHORTCUT">
+        <Shortcut Id="VdmShortcut" Name="Vibe Download Manager" Description="Fast, resumable downloads"
+                  Target="[INSTALLFOLDER]vdm-gui.exe" WorkingDirectory="INSTALLFOLDER"
+                  Icon="vdm.ico">
+          <!-- Lets notifications show "Vibe Download Manager" as their sender. -->
+          <ShortcutProperty Key="System.AppUserModel.ID" Value="Vibe.DownloadManager" />
+        </Shortcut>
+        <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="StartMenuShortcutEntry"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Condition="DESKTOPSHORTCUT">
+        <Shortcut Id="VdmDesktopShortcut" Name="Vibe Download Manager"
+                  Description="Fast, resumable downloads"
+                  Target="[INSTALLFOLDER]vdm-gui.exe" WorkingDirectory="INSTALLFOLDER"
+                  Icon="vdm.ico" />
+        <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="DesktopShortcutEntry"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="Vibe Download Manager" Level="1">
+      <ComponentRef Id="App" />
+      <ComponentRef Id="Cli" />
+      <ComponentRef Id="NativeHost" />
+      <ComponentRef Id="AutoStartEntry" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+    <!-- ============================================================ launch after install -->
+
+    <Property Id="WixShellExecTarget" Value="[#VdmGui]" />
+    <CustomAction Id="LaunchApplication" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)"
+                  DllEntry="WixShellExec" Impersonate="yes" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Vibe Download Manager" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+
+    <!-- ============================================================ pages -->
+
+    <WixVariable Id="WixUIBannerBmp" Value="$(sys.SOURCEFILEDIR)..\assets\installer\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="$(sys.SOURCEFILEDIR)..\assets\installer\dialog.bmp" />
+
+    <UI Id="VdmUI">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Segoe UI" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Segoe UI" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+      <DialogRef Id="WelcomeDlg" />
+      <DialogRef Id="VerifyReadyDlg" />
+      <DialogRef Id="MaintenanceWelcomeDlg" />
+      <DialogRef Id="MaintenanceTypeDlg" />
+      <DialogRef Id="ExitDialog" />
+
+      <!-- Welcome, then the options, then install. -->
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VdmOptionsDlg"
+               Condition="NOT Installed" />
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg"
+               Condition="Installed AND PATCH" />
+      <Publish Dialog="VdmOptionsDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" />
+      <Publish Dialog="VdmOptionsDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="VdmOptionsDlg"
+               Order="1" Condition="NOT Installed" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg"
+               Order="2" Condition="Installed AND NOT PATCH" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg"
+               Order="2" Condition="Installed AND PATCH" />
+
+      <!-- Running the installer again: repair or remove. -->
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
+
+      <!-- Finish: start the app if the box is ticked. -->
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication"
+               Order="1" Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+
+      <Dialog Id="VdmOptionsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44"
+                 TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="230" Height="15" Transparent="yes"
+                 NoPrefix="yes" Text="{\WixUI_Font_Title}Choose your options" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="230" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Shortcuts, and whether Vibe starts with Windows." />
+
+        <Control Id="DesktopShortcut" Type="CheckBox" X="20" Y="62" Width="330" Height="17"
+                 Property="DESKTOPSHORTCUT" CheckBoxValue="1"
+                 Text="Create a &amp;desktop shortcut" />
+        <Control Id="StartMenuShortcut" Type="CheckBox" X="20" Y="86" Width="330" Height="17"
+                 Property="STARTMENUSHORTCUT" CheckBoxValue="1"
+                 Text="Add to the &amp;Start menu" />
+        <Control Id="AutoStart" Type="CheckBox" X="20" Y="110" Width="330" Height="17"
+                 Property="AUTOSTART" CheckBoxValue="1"
+                 Text="Start Vibe when I &amp;sign in (minimized to the tray)" />
+        <Control Id="Note" Type="Text" X="37" Y="129" Width="310" Height="28" NoPrefix="yes"
+                 Text="You can change this later in Settings." />
+        <Control Id="Location" Type="Text" X="20" Y="190" Width="330" Height="30" NoPrefix="yes"
+                 Text="Installs for you only, in [INSTALLFOLDER], without administrator rights." />
+
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                 Text="!(loc.WixUIBack)" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+    </UI>
+    <UIRef Id="WixUI_Common" />
+  </Package>
+</Wix>

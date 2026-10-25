@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vibe Download Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="icons/icon48.png" width="24" height="24" alt="">
+    <h1>Vibe <span class="sub">Download Manager</span></h1>
+  </header>
+
+  <p id="status" class="status" data-i18n="popupChecking">Checking for Vibe…</p>
+
+  <section class="videos" aria-labelledby="videosTitle">
+    <h2 id="videosTitle" data-i18n="popupVideos">Videos on this page</h2>
+    <ul id="streams" class="streams"></ul>
+    <p id="noStreams" class="empty" data-i18n="popupNoStreams">No video streams detected yet. Start playing the video.</p>
+  </section>
+
+  <label class="row">
+    <input type="checkbox" id="capture">
+    <span data-i18n="popupCapture">Capture browser downloads</span>
+  </label>
+
+  <label class="row">
+    <span data-i18n="popupMinSize">Ignore files smaller than (KB)</span>
+    <input type="number" id="minSize" min="0" step="1">
+  </label>
+
+  <p id="lastError" class="error" hidden></p>
+
+  <!-- decide.js defines the VDM helpers (defaults) used by popup.js. -->
+  <script src="decide.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

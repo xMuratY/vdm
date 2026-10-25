@@ -1,0 +1,54 @@
+name: Website
+
+# Builds the website from site/ with `cargo xtask site` and publishes it to
+# GitHub Pages. In the repository settings, set Pages > Source to "GitHub Actions".
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "docs/images/**"
+      - "assets/icons/**"
+      - "xtask/**"
+      - "Cargo.toml"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; don't cancel one that's running.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Build the site
+        run: >-
+          cargo xtask site
+          --out target/site
+          --base-url "${{ steps.pages.outputs.base_url }}"
+          --repo "${{ github.repository }}"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,74 @@
+{
+  "extName": {
+    "message": "Vibe Download Manager",
+    "description": "Product name. Do not translate."
+  },
+  "extDescription": {
+    "message": "Tarayıcı indirmelerini, bağlantıları ve video akışlarını Vibe Download Manager'a gönderir.",
+    "description": "Store and extensions-page description."
+  },
+  "menuDownload": {
+    "message": "Vibe ile indir",
+    "description": "Context menu entry on links, images, video and audio."
+  },
+  "popupChecking": {
+    "message": "Vibe denetleniyor…",
+    "description": "Shown while the popup asks the app whether it is running."
+  },
+  "popupConnected": {
+    "message": "Vibe bağlı, sürüm: $1",
+    "description": "$1 is the app version, e.g. 0.1.0."
+  },
+  "popupNotFound": {
+    "message": "Vibe Download Manager bulunamadı. Kurun ve şunu çalıştırın: $1.",
+    "description": "$1 is a command shown as code: vdm-nmhost install."
+  },
+  "popupVideos": {
+    "message": "Bu sayfadaki videolar",
+    "description": "Heading of the list of detected video streams."
+  },
+  "popupNoStreams": {
+    "message": "Henüz video akışı algılanmadı. Videoyu oynatmaya başlayın.",
+    "description": "Shown when the page has no detected streams."
+  },
+  "popupCapture": {
+    "message": "Tarayıcı indirmelerini yakala",
+    "description": "Checkbox: hand the browser's downloads to the app."
+  },
+  "popupMinSize": {
+    "message": "Şundan küçük dosyaları yoksay (KB)",
+    "description": "Number input label."
+  },
+  "popupLastError": {
+    "message": "Son indirme başarısız oldu ($1): $2",
+    "description": "$1 is a date and time, $2 the error message."
+  },
+  "popupDownloadStream": {
+    "message": "Vibe ile indir",
+    "description": "Button next to a detected video stream."
+  },
+  "popupSending": {
+    "message": "Gönderiliyor…",
+    "description": "Shown while a stream is handed to the app."
+  },
+  "popupSent": {
+    "message": "Gönderildi",
+    "description": "The stream was handed to the app."
+  },
+  "popupSendFailed": {
+    "message": "Gönderilemedi",
+    "description": "Handing the stream to the app failed."
+  },
+  "errUnexpectedReply": {
+    "message": "Vibe Download Manager beklenmeyen bir yanıt gönderdi",
+    "description": "Error when the app answers with something unexpected."
+  },
+  "errHttpLinksOnly": {
+    "message": "Vibe'a yalnızca http(s) bağlantıları gönderilebilir",
+    "description": "Error for links with other schemes."
+  },
+  "errHttpStreamsOnly": {
+    "message": "Vibe'a yalnızca http(s) akışları gönderilebilir",
+    "description": "Error for streams with other schemes."
+  }
+}

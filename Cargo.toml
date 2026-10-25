@@ -1,0 +1,75 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "xtask"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+publish = false
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+# Internal crates
+vdm-core = { path = "crates/vdm-core" }
+vdm-ipc = { path = "crates/vdm-ipc" }
+vdm-proto = { path = "crates/vdm-proto" }
+vdm-store = { path = "crates/vdm-store" }
+vdm-media = { path = "crates/vdm-media" }
+vdm-testsrv = { path = "crates/vdm-testsrv" }
+
+# External crates
+aes = "0.8"
+anyhow = "1"
+base64 = "0.23"
+axum = "0.8"
+bytes = "1"
+cbc = { version = "0.1", features = ["std"] }
+chrono = "0.4"
+clap = { version = "4", features = ["derive"] }
+directories = "6"
+futures-util = "0.3"
+iced = { version = "0.14", features = ["tokio", "svg", "advanced-shaping"] }
+interprocess = "2"
+keyring = "4"
+libunftp = "0.23"
+md-5 = "0.11"
+notify-rust = "4"
+percent-encoding = "2"
+png = "0.18"
+quick-xml = "0.41"
+proptest = "1"
+reqwest = { version = "0.12", default-features = false }
+rfd = "0.17"
+rusqlite = { version = "0.41", features = ["bundled"] }
+semver = "1"
+serde = { version = "1", features = ["derive"] }
+sys-locale = "0.3"
+serde_json = "1"
+sha1 = "0.11"
+sha2 = "0.11"
+suppaftp = { version = "12", features = ["tokio", "tokio-rustls-ring"] }
+tempfile = "3"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "time", "sync", "signal", "fs", "io-util", "process"] }
+tokio-util = "0.7"
+toml = "1"
+winreg = "0.55"
+tray-icon = "0.26"
+unftp-sbe-fs = "0.4"
+url = "2"
+winresource = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+dbg_macro = "warn"
+todo = "warn"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

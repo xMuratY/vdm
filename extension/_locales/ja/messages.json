@@ -1,0 +1,74 @@
+{
+  "extName": {
+    "message": "Vibe Download Manager",
+    "description": "Product name. Do not translate."
+  },
+  "extDescription": {
+    "message": "ブラウザーのダウンロード、リンク、動画ストリームを Vibe Download Manager に送信します。",
+    "description": "Store and extensions-page description."
+  },
+  "menuDownload": {
+    "message": "Vibe でダウンロード",
+    "description": "Context menu entry on links, images, video and audio."
+  },
+  "popupChecking": {
+    "message": "Vibe を確認中…",
+    "description": "Shown while the popup asks the app whether it is running."
+  },
+  "popupConnected": {
+    "message": "Vibe $1 に接続しました",
+    "description": "$1 is the app version, e.g. 0.1.0."
+  },
+  "popupNotFound": {
+    "message": "Vibe Download Manager が見つかりません。インストールして $1 を実行してください。",
+    "description": "$1 is a command shown as code: vdm-nmhost install."
+  },
+  "popupVideos": {
+    "message": "このページの動画",
+    "description": "Heading of the list of detected video streams."
+  },
+  "popupNoStreams": {
+    "message": "動画ストリームはまだ検出されていません。動画を再生してください。",
+    "description": "Shown when the page has no detected streams."
+  },
+  "popupCapture": {
+    "message": "ブラウザーのダウンロードを取り込む",
+    "description": "Checkbox: hand the browser's downloads to the app."
+  },
+  "popupMinSize": {
+    "message": "これより小さいファイルは無視 (KB)",
+    "description": "Number input label."
+  },
+  "popupLastError": {
+    "message": "前回のダウンロードに失敗しました ($1): $2",
+    "description": "$1 is a date and time, $2 the error message."
+  },
+  "popupDownloadStream": {
+    "message": "Vibe でダウンロード",
+    "description": "Button next to a detected video stream."
+  },
+  "popupSending": {
+    "message": "送信中…",
+    "description": "Shown while a stream is handed to the app."
+  },
+  "popupSent": {
+    "message": "送信しました",
+    "description": "The stream was handed to the app."
+  },
+  "popupSendFailed": {
+    "message": "送信できませんでした",
+    "description": "Handing the stream to the app failed."
+  },
+  "errUnexpectedReply": {
+    "message": "Vibe Download Manager から予期しない応答が返されました",
+    "description": "Error when the app answers with something unexpected."
+  },
+  "errHttpLinksOnly": {
+    "message": "Vibe に送信できるのは http(s) のリンクのみです",
+    "description": "Error for links with other schemes."
+  },
+  "errHttpStreamsOnly": {
+    "message": "Vibe に送信できるのは http(s) のストリームのみです",
+    "description": "Error for streams with other schemes."
+  }
+}

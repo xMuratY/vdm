@@ -1,0 +1,74 @@
+{
+  "extName": {
+    "message": "Vibe Download Manager",
+    "description": "Product name. Do not translate."
+  },
+  "extDescription": {
+    "message": "Sendet Browser-Downloads, Links und Videostreams an Vibe Download Manager.",
+    "description": "Store and extensions-page description."
+  },
+  "menuDownload": {
+    "message": "Mit Vibe herunterladen",
+    "description": "Context menu entry on links, images, video and audio."
+  },
+  "popupChecking": {
+    "message": "Suche nach Vibe…",
+    "description": "Shown while the popup asks the app whether it is running."
+  },
+  "popupConnected": {
+    "message": "Mit Vibe $1 verbunden",
+    "description": "$1 is the app version, e.g. 0.1.0."
+  },
+  "popupNotFound": {
+    "message": "Vibe Download Manager nicht gefunden. Installiere die App und führe $1 aus.",
+    "description": "$1 is a command shown as code: vdm-nmhost install."
+  },
+  "popupVideos": {
+    "message": "Videos auf dieser Seite",
+    "description": "Heading of the list of detected video streams."
+  },
+  "popupNoStreams": {
+    "message": "Noch keine Videostreams erkannt. Starte die Wiedergabe des Videos.",
+    "description": "Shown when the page has no detected streams."
+  },
+  "popupCapture": {
+    "message": "Browser-Downloads abfangen",
+    "description": "Checkbox: hand the browser's downloads to the app."
+  },
+  "popupMinSize": {
+    "message": "Dateien ignorieren, die kleiner sind als (KB)",
+    "description": "Number input label."
+  },
+  "popupLastError": {
+    "message": "Letzter Download fehlgeschlagen ($1): $2",
+    "description": "$1 is a date and time, $2 the error message."
+  },
+  "popupDownloadStream": {
+    "message": "Mit Vibe herunterladen",
+    "description": "Button next to a detected video stream."
+  },
+  "popupSending": {
+    "message": "Wird gesendet…",
+    "description": "Shown while a stream is handed to the app."
+  },
+  "popupSent": {
+    "message": "Gesendet",
+    "description": "The stream was handed to the app."
+  },
+  "popupSendFailed": {
+    "message": "Senden fehlgeschlagen",
+    "description": "Handing the stream to the app failed."
+  },
+  "errUnexpectedReply": {
+    "message": "Vibe Download Manager hat eine unerwartete Antwort gesendet",
+    "description": "Error when the app answers with something unexpected."
+  },
+  "errHttpLinksOnly": {
+    "message": "Nur http(s)-Links können an Vibe gesendet werden",
+    "description": "Error for links with other schemes."
+  },
+  "errHttpStreamsOnly": {
+    "message": "Nur http(s)-Streams können an Vibe gesendet werden",
+    "description": "Error for streams with other schemes."
+  }
+}

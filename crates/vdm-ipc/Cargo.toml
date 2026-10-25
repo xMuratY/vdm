@@ -1,0 +1,19 @@
+[package]
+name = "vdm-ipc"
+description = "Local IPC between VDM processes: single instance and the browser host"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+directories.workspace = true
+interprocess.workspace = true
+vdm-proto.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true

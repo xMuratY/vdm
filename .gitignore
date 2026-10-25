@@ -1,0 +1,5 @@
+/target
+*.vdmpart
+/dist
+/PLAN.md
+/.wix

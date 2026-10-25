@@ -1,0 +1,16 @@
+[package]
+name = "vdm-media"
+description = "HLS and DASH parsing for VDM: playlists and manifests into segment plans"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+quick-xml.workspace = true
+thiserror.workspace = true
+url.workspace = true
+
+[lints]
+workspace = true

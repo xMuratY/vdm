@@ -1,0 +1,50 @@
++++
+title = "Vibe vs IDM, FDM, JDownloader and Motrix"
+description = "How Vibe Download Manager compares with Internet Download Manager, Free Download Manager, JDownloader and Motrix: price, source code, platforms and features."
+path = "/compare/"
++++
+<section class="wrap page">
+  <h1>Choosing a download manager</h1>
+  <div class="prose">
+    <p class="lede">Every download manager here splits files into several connections and resumes broken downloads. They differ in price, openness, platforms and what they're built with. Here's how Vibe fits in.</p>
+
+    <h2>At a glance</h2>
+  </div>
+  <div class="table-scroll">
+    <table class="compare-table">
+      <thead>
+        <tr><th scope="col">App</th><th scope="col">Price</th><th scope="col">Source code</th><th scope="col">Built with</th><th scope="col">Platforms</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row" class="ours">Vibe Download Manager</th><td>Free</td><td>Open (MIT or Apache 2.0)</td><td>Rust, native</td><td>Windows; macOS and Linux from source</td></tr>
+        <tr><th scope="row">Internet Download Manager (IDM)</th><td>Paid, with a trial</td><td>Closed</td><td>Native</td><td>Windows</td></tr>
+        <tr><th scope="row">Free Download Manager (FDM)</th><td>Free</td><td>Closed</td><td>Native</td><td>Windows, macOS, Linux, Android</td></tr>
+        <tr><th scope="row">JDownloader 2</th><td>Free</td><td>Mostly open</td><td>Java</td><td>Windows, macOS, Linux</td></tr>
+        <tr><th scope="row">Motrix</th><td>Free</td><td>Open (MIT)</td><td>Electron, aria2</td><td>Windows, macOS, Linux</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">Based on each project's public information as of 2026. Projects change; check their sites for the latest.</p>
+
+  <div class="prose">
+    <h2>Vibe and IDM</h2>
+    <p>Internet Download Manager made multi-connection downloading popular, and its browser integration is excellent. It's also paid software for Windows only, and closed source. Vibe covers the same everyday jobs (many connections, resuming, a video grabber, browser integration, categories, a queue and a speed limit) for free, with code anyone can read. If you're looking for an <strong>IDM alternative</strong> that doesn't nag about a license, this is what Vibe was made for.</p>
+
+    <h2>Vibe and Free Download Manager</h2>
+    <p>FDM is free and runs on more platforms, including Android, and it handles torrents. Vibe doesn't do torrents yet. In exchange, Vibe is fully open source, so you can check exactly what runs on your computer.</p>
+
+    <h2>Vibe and JDownloader</h2>
+    <p>JDownloader is strong at link crawling and file-hoster sites, with a large plugin ecosystem. It needs Java and has a feature-packed interface. Vibe is lighter: one small native program that starts instantly and focuses on direct downloads and video streams.</p>
+
+    <h2>Vibe and Motrix</h2>
+    <p>Motrix is a friendly, open-source front end for the aria2 engine, built with Electron. Vibe has its own download engine in Rust, so it uses far less memory than an app that ships a web browser, and it adds a stream grabber and checksum checks.</p>
+
+    <h2>Which should you pick?</h2>
+    <ul>
+      <li><strong>You want something free, open and light on Windows:</strong> try <a href="{{root}}download/">Vibe</a>.</li>
+      <li><strong>You need torrents or Android today:</strong> Free Download Manager or Motrix.</li>
+      <li><strong>You download mostly from file-hoster sites:</strong> JDownloader.</li>
+    </ul>
+    <p>Missing something you rely on? <a href="{{github}}/issues">Tell us on GitHub</a>; that's how the roadmap gets set.</p>
+  </div>
+</section>

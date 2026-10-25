@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<link rel="canonical" href="{{canonical}}">
+<meta name="theme-color" content="#6d28d9">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="{{root}}favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="{{root}}icon-256.png">
+<link rel="alternate" type="application/atom+xml" title="Vibe Download Manager blog" href="{{root}}feed.xml">
+<meta property="og:site_name" content="Vibe Download Manager">
+<meta property="og:type" content="{{og_type}}">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="{{canonical}}">
+<meta property="og:image" content="{{og_image}}">
+<meta property="og:image:alt" content="The Vibe Download Manager window with several downloads in progress">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{title}}">
+<meta name="twitter:description" content="{{description}}">
+<meta name="twitter:image" content="{{og_image}}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<link rel="stylesheet" href="{{root}}style.css">
+{{json_ld}}
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="{{root}}">
+      <img src="{{root}}icon-256.png" width="32" height="32" alt="">
+      <span>Vibe</span>
+    </a>
+    <nav aria-label="Main">
+      <a href="{{root}}download/"{{nav_download}}>Download</a>
+      <a href="{{root}}compare/"{{nav_compare}}>Compare</a>
+      <a href="{{root}}blog/"{{nav_blog}}>Blog</a>
+      <a href="{{root}}faq/"{{nav_faq}}>FAQ</a>
+      <a href="{{github}}">GitHub</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+{{content}}
+</main>
+<footer class="site-footer">
+  <div class="wrap foot">
+    <div>
+      <p class="foot-brand">Vibe Download Manager</p>
+      <p>Free and open source under the MIT or Apache 2.0 license.</p>
+    </div>
+    <ul>
+      <li><a href="{{root}}download/">Download</a></li>
+      <li><a href="{{root}}compare/">Compare download managers</a></li>
+      <li><a href="{{root}}blog/">Blog</a></li>
+      <li><a href="{{root}}feed.xml">RSS feed</a></li>
+      <li><a href="{{github}}">Source code</a></li>
+      <li><a href="{{github}}/issues">Report a bug</a></li>
+    </ul>
+  </div>
+</footer>
+<script src="{{root}}site.js" defer></script>
+</body>
+</html>

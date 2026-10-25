@@ -1,0 +1,129 @@
++++
+title = "Vibe Download Manager: fast, free, open-source downloads"
+description = "A free, open-source download manager for Windows. Splits files across up to 32 connections, resumes after any interruption and saves HLS/DASH video."
+path = "/"
+schema = "software"
++++
+<section class="wrap hero">
+  <h1>Fast downloads that pick up where they left off</h1>
+  <p class="lede">Vibe splits every file across up to 32 connections, resumes after crashes, reboots and dropped Wi&#8209;Fi, and saves the video streams your browser plays. It's free, open source and built in Rust.</p>
+  <div class="actions">
+    <a class="button primary" href="{{root}}download/">Download for Windows</a>
+    <a class="button" href="{{github}}">View the source on GitHub</a>
+  </div>
+  <p class="fine">Version {{version}} for Windows 10 and 11. No ads, no account, no tracking.</p>
+
+  <figure class="demo">
+    <div class="demo-head" aria-hidden="true">
+      <span class="demo-file">ubuntu-24.04-desktop-amd64.iso</span>
+      <span class="demo-size">5.7 GB</span>
+    </div>
+    <div class="segments" data-segments role="img" aria-label="A file split into pieces, each filled by its own connection"></div>
+    <dl class="demo-stats" aria-hidden="true">
+      <div><dt>Connections</dt><dd data-connections>12</dd></div>
+      <div><dt>Speed</dt><dd data-speed>0 MB/s</dd></div>
+      <div><dt>Done</dt><dd data-done>0%</dd></div>
+    </dl>
+    <figcaption>Each band is one connection. When a connection finishes its piece, it takes over half of the largest piece still left, so none of them sit idle until the file is done.</figcaption>
+  </figure>
+</section>
+
+<section class="wrap shot">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="{{root}}images/main-dark.png">
+    <img src="{{root}}images/main-light.png" width="1475" height="925" loading="lazy"
+         alt="Vibe Download Manager with eight downloads: three completed, three downloading, one queued and one failed">
+  </picture>
+</section>
+
+<section class="wrap section" aria-labelledby="what">
+  <header>
+    <h2 id="what">What Vibe does</h2>
+    <p>Everything a download manager should do, in a small native app that starts instantly and stays out of your way.</p>
+  </header>
+  <div class="specs">
+    <div class="spec-group">
+      <h3>Speed</h3>
+      <dl>
+        <dt>Many connections per file</dt><dd>Up to 32, with pieces that split again as connections finish.</dd>
+        <dt>Resume anything</dt><dd>Pause, crash, reboot or lose the network: the download continues from the last byte. Vibe checks the file hasn't changed on the server first.</dd>
+        <dt>Queues and schedules</dt><dd>Group downloads into queues that run overnight or on weekends, each with its own speed and how many run at once. When a queue is done, Vibe can put the computer to sleep or shut it down.</dd>
+        <dt>HTTP, HTTPS and FTP</dt><dd>Including FTP resume, proxies (HTTP and SOCKS5) and site logins.</dd>
+      </dl>
+    </div>
+    <div class="spec-group">
+      <h3>Video</h3>
+      <dl>
+        <dt>HLS and DASH streams</dt><dd>Saves <code>.m3u8</code> and <code>.mpd</code> streams: picks the quality, downloads the segments in parallel and decrypts AES-128.</dd>
+        <dt>One file at the end</dt><dd>Audio and video are joined into a single <code>.mp4</code> when <code>ffmpeg</code> is installed.</dd>
+      </dl>
+    </div>
+    <div class="spec-group">
+      <h3>Your browser</h3>
+      <dl>
+        <dt>Takes over downloads</dt><dd>The extension for Chrome, Edge, Brave and Firefox hands files to Vibe with the right cookies and referrer, so logged-in downloads work.</dd>
+        <dt>Videos on the page</dt><dd>The toolbar button lists the streams the current page plays. One click sends them to Vibe.</dd>
+      </dl>
+    </div>
+    <div class="spec-group">
+      <h3>Everyday use</h3>
+      <dl>
+        <dt>Sorted for you</dt><dd>Files land in folders by type, and the sidebar filters by state and category.</dd>
+        <dt>Bulk actions</dt><dd>Select many downloads and pause, resume, open or delete them together.</dd>
+        <dt>Columns your way</dt><dd>Resize, reorder, hide or auto-fit the list's columns.</dd>
+        <dt>See inside a download</dt><dd>The details panel shows each piece filling as its connection writes, a speed graph, what the server reported and a log of what happened.</dd>
+        <dt>Quietly there</dt><dd>Starts minimized with Windows if you like, lives in the tray and notifies you when files finish.</dd>
+        <dt>Safe by default</dt><dd>Verify MD5 or SHA checksums, and run a virus scan after each download.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="wrap section" aria-labelledby="compare">
+  <header>
+    <h2 id="compare">How it compares</h2>
+    <p>Vibe is free like the open-source managers and native like the commercial ones.</p>
+  </header>
+  <div class="table-scroll">
+    <table class="compare-table">
+      <thead><tr><th scope="col">App</th><th scope="col">Price</th><th scope="col">Source code</th><th scope="col">Built with</th></tr></thead>
+      <tbody>
+        <tr><th scope="row" class="ours">Vibe Download Manager</th><td>Free</td><td>Open (MIT or Apache 2.0)</td><td>Rust, native</td></tr>
+        <tr><th scope="row">Internet Download Manager</th><td>Paid, with a trial</td><td>Closed</td><td>Native, Windows only</td></tr>
+        <tr><th scope="row">Free Download Manager</th><td>Free</td><td>Closed</td><td>Native</td></tr>
+        <tr><th scope="row">JDownloader 2</th><td>Free</td><td>Mostly open</td><td>Java</td></tr>
+        <tr><th scope="row">Motrix</th><td>Free</td><td>Open (MIT)</td><td>Electron</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">As of 2026; each project may change. <a href="{{root}}compare/">Read the full comparison</a>.</p>
+</section>
+
+<section class="wrap section" aria-labelledby="languages">
+  <header>
+    <h2 id="languages">In your language</h2>
+    <p>Vibe follows your system language and can switch at any time.</p>
+  </header>
+  <ul class="languages">
+    <li lang="en">English</li><li lang="es">Español</li><li lang="fr">Français</li><li lang="de">Deutsch</li>
+    <li lang="pt-BR">Português</li><li lang="it">Italiano</li><li lang="ru">Русский</li><li lang="tr">Türkçe</li>
+    <li lang="pl">Polski</li><li lang="zh-CN">简体中文</li><li lang="ja">日本語</li><li lang="ko">한국어</li>
+  </ul>
+</section>
+
+<section class="wrap section" aria-labelledby="blog">
+  <header>
+    <h2 id="blog">From the blog</h2>
+  </header>
+  {{latest_posts}}
+  <p><a href="{{root}}blog/">All posts</a></p>
+</section>
+
+<section class="wrap cta">
+  <h2>Get your downloads moving</h2>
+  <p class="lede">Install in a minute, no administrator rights needed. Updates arrive on their own.</p>
+  <div class="actions">
+    <a class="button primary" href="{{root}}download/">Download for Windows</a>
+    <a class="button" href="{{root}}faq/">Questions? Read the FAQ</a>
+  </div>
+</section>

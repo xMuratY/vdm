@@ -1,0 +1,74 @@
+{
+  "extName": {
+    "message": "Vibe Download Manager",
+    "description": "Product name. Do not translate."
+  },
+  "extDescription": {
+    "message": "브라우저 다운로드, 링크, 동영상 스트림을 Vibe Download Manager로 보냅니다.",
+    "description": "Store and extensions-page description."
+  },
+  "menuDownload": {
+    "message": "Vibe로 다운로드",
+    "description": "Context menu entry on links, images, video and audio."
+  },
+  "popupChecking": {
+    "message": "Vibe 확인 중…",
+    "description": "Shown while the popup asks the app whether it is running."
+  },
+  "popupConnected": {
+    "message": "Vibe 연결됨 (버전 $1)",
+    "description": "$1 is the app version, e.g. 0.1.0."
+  },
+  "popupNotFound": {
+    "message": "Vibe Download Manager를 찾을 수 없습니다. 설치한 후 $1 명령을 실행하세요.",
+    "description": "$1 is a command shown as code: vdm-nmhost install."
+  },
+  "popupVideos": {
+    "message": "이 페이지의 동영상",
+    "description": "Heading of the list of detected video streams."
+  },
+  "popupNoStreams": {
+    "message": "감지된 동영상 스트림이 아직 없습니다. 동영상을 재생해 보세요.",
+    "description": "Shown when the page has no detected streams."
+  },
+  "popupCapture": {
+    "message": "브라우저 다운로드 가로채기",
+    "description": "Checkbox: hand the browser's downloads to the app."
+  },
+  "popupMinSize": {
+    "message": "이 크기보다 작은 파일 무시(KB)",
+    "description": "Number input label."
+  },
+  "popupLastError": {
+    "message": "마지막 다운로드 실패($1): $2",
+    "description": "$1 is a date and time, $2 the error message."
+  },
+  "popupDownloadStream": {
+    "message": "Vibe로 다운로드",
+    "description": "Button next to a detected video stream."
+  },
+  "popupSending": {
+    "message": "보내는 중…",
+    "description": "Shown while a stream is handed to the app."
+  },
+  "popupSent": {
+    "message": "보냄",
+    "description": "The stream was handed to the app."
+  },
+  "popupSendFailed": {
+    "message": "보내지 못했습니다",
+    "description": "Handing the stream to the app failed."
+  },
+  "errUnexpectedReply": {
+    "message": "Vibe Download Manager가 예기치 않은 응답을 보냈습니다",
+    "description": "Error when the app answers with something unexpected."
+  },
+  "errHttpLinksOnly": {
+    "message": "http(s) 링크만 Vibe로 보낼 수 있습니다",
+    "description": "Error for links with other schemes."
+  },
+  "errHttpStreamsOnly": {
+    "message": "http(s) 스트림만 Vibe로 보낼 수 있습니다",
+    "description": "Error for streams with other schemes."
+  }
+}

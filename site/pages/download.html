@@ -1,0 +1,33 @@
++++
+title = "Download Vibe for Windows"
+description = "Download Vibe Download Manager, a free and open-source download accelerator for Windows 10 and 11. Installs without admin rights and updates itself."
+path = "/download/"
+schema = "software"
++++
+<section class="wrap page">
+  <h1>Download Vibe for Windows</h1>
+  <p class="lede">Version {{version}} for Windows 10 and 11 (64-bit). Free, open source, no ads.</p>
+  <div class="actions">
+    <a class="button primary" href="{{releases}}">Get the installer from GitHub</a>
+    <a class="button" href="{{github}}#build-from-source">Build from source</a>
+  </div>
+  <p class="fine">The installer is the <code>VibeDownloadManager-{{version}}-x86_64.msi</code> file under "Assets" on the release page.</p>
+
+  <h2>Install in three steps</h2>
+  <ol class="download-steps">
+    <li><h3>Run the installer</h3><p>It installs for your Windows account only, so it doesn't ask for administrator rights.</p></li>
+    <li><h3>Pick your options</h3><p>A desktop shortcut, a Start menu entry, and whether Vibe starts minimized when you sign in. You can change them later.</p></li>
+    <li><h3>Add the browser extension</h3><p>To send browser downloads and videos to Vibe, load the extension in Chrome, Edge, Brave or Firefox. The <a href="{{github}}/tree/main/extension">extension guide</a> shows how.</p></li>
+  </ol>
+
+  <h2>Good to know</h2>
+  <div class="prose">
+    <ul>
+      <li><strong>Updates install themselves.</strong> Vibe checks once a day and updates silently, keeping your settings. You can turn this off in Settings.</li>
+      <li><strong>Windows SmartScreen</strong> may warn that the publisher is unknown until the installer is code-signed. Choose "More info", then "Run anyway".</li>
+      <li><strong>Video streams</strong> are joined into one <code>.mp4</code> when <a href="https://ffmpeg.org/download.html">ffmpeg</a> is on your PATH. Without it you get the original pieces.</li>
+      <li><strong>Unattended installs:</strong> <code>msiexec /i VibeDownloadManager-{{version}}-x86_64.msi /qn</code>. Add <code>DESKTOPSHORTCUT=""</code> or <code>AUTOSTART=""</code> to skip those options.</li>
+      <li><strong>macOS and Linux</strong> builds work from source today; packages are on the way.</li>
+    </ul>
+  </div>
+</section>

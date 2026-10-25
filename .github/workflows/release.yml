@@ -1,0 +1,84 @@
+name: Release
+
+# Push a tag like v0.2.0 (matching the workspace version) to publish a release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      # Baked into the app as its update check address.
+      VDM_UPDATE_URL: https://github.com/${{ github.repository }}/releases/latest/download/latest.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: dotnet tool restore
+
+      - name: Check the tag matches the version
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
+          if ("v$version" -ne "${{ github.ref_name }}") { throw "tag ${{ github.ref_name }} != version $version" }
+
+      # Signing is optional: add a base64 PFX as the WINDOWS_CERT_PFX secret
+      # and its password as WINDOWS_CERT_PASSWORD.
+      - name: Load the signing certificate
+        if: ${{ env.CERT != '' }}
+        env:
+          CERT: ${{ secrets.WINDOWS_CERT_PFX }}
+        shell: pwsh
+        run: |
+          $path = Join-Path $env:RUNNER_TEMP "vdm-sign.pfx"
+          [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:CERT))
+          "VDM_SIGN_PFX=$path" >> $env:GITHUB_ENV
+
+      - name: Build the installer
+        env:
+          VDM_SIGN_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: >-
+          cargo xtask dist
+          --base-url https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}
+          --notes "Vibe Download Manager ${{ github.ref_name }}"
+
+      # The browser extension, to load unpacked until it is in the stores.
+      - name: Package the browser extension
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $stage = Join-Path $env:RUNNER_TEMP "extension"
+          New-Item -ItemType Directory $stage | Out-Null
+          Get-ChildItem extension -Exclude test, README.md | Copy-Item -Destination $stage -Recurse
+          Compress-Archive -Path "$stage\*" -DestinationPath "dist\VibeDownloadManager-extension-$version.zip"
+
+      # The release notes are this version's section of CHANGELOG.md, followed
+      # by the SHA-256 of each file so downloads can be checked.
+      - name: Release notes
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $lines = Get-Content CHANGELOG.md -Encoding utf8
+          $start = [Array]::FindIndex($lines, [Predicate[string]] { param($l) $l -match "^## $([regex]::Escape($version))( |$)" })
+          if ($start -lt 0) { throw "CHANGELOG.md has no section for $version" }
+          $end = [Array]::FindIndex($lines, $start + 1, [Predicate[string]] { param($l) $l -match "^## " })
+          if ($end -lt 0) { $end = $lines.Count }
+          $notes = [Collections.Generic.List[string]]::new()
+          $notes.AddRange([string[]]$lines[($start + 1)..($end - 1)])
+          $notes.AddRange([string[]]@(
+            "", "### SHA-256", "",
+            "Check a download with ``Get-FileHash <file>`` in PowerShell.", "",
+            "| File | SHA-256 |", "| --- | --- |"))
+          foreach ($file in Get-ChildItem dist\*.msi, dist\*.zip -File) {
+            $notes.Add("| $($file.Name) | ``$((Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower())`` |")
+          }
+          $notes | Set-Content (Join-Path $env:RUNNER_TEMP "notes.md") -Encoding utf8
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create ${{ github.ref_name }} dist/*.msi dist/*.zip dist/latest.json --title "Vibe Download Manager ${{ github.ref_name }}" --notes-file "${{ runner.temp }}/notes.md"
