@@ -11,7 +11,7 @@ browser integration and a clean desktop app, in 12 languages.
 
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-7c3aed)](#license)
 [![Rust 1.88+](https://img.shields.io/badge/rust-1.88%2B-db2777?logo=rust)](https://www.rust-lang.org)
-[![Platform: Windows](https://img.shields.io/badge/platform-Windows-0ea5e9?logo=windows)](#install)
+[![Platforms: Windows, macOS, Linux](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-0ea5e9)](#install)
 [![Languages: 12](https://img.shields.io/badge/languages-12-10b981)](#languages)
 
 [Install](#install) · [Features](#features) · [Usage](#usage) · [Browser extension](#browser-extension) · [Build from source](#build-from-source) · [Contributing](#contributing)
@@ -90,10 +90,32 @@ For an unattended install, pass the options as properties, for example
 `msiexec /i VibeDownloadManager-0.1.0-x86_64.msi /qn DESKTOPSHORTCUT="" AUTOSTART=1`
 (an empty value turns an option off).
 
-### macOS and Linux
+### macOS
 
-The code builds on macOS and Linux, but there are no packages yet. Linux doesn't have a
-tray icon yet. See [Build from source](#build-from-source).
+Download `VibeDownloadManager-<version>-macos-universal.dmg` (Apple silicon and Intel,
+macOS 11 or newer), open it and drag **Vibe Download Manager** onto **Applications**.
+
+The app isn't notarized by Apple, so macOS won't open it the first time. Open
+**System Settings → Privacy & Security** and click **Open Anyway**, or run:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Vibe Download Manager.app"
+```
+
+The command-line client is `/Applications/Vibe Download Manager.app/Contents/MacOS/vdm`.
+
+### Linux
+
+Download `VibeDownloadManager-<version>-linux-x86_64.tar.gz` (it needs glibc 2.39 or newer,
+as in Ubuntu 24.04, Debian 13 or Fedora 40), unpack it and run `./install.sh`. It installs
+for your user only: Vibe appears in your applications menu, `vdm-gui` and `vdm` go to
+`~/.local/bin`, and the browser connection is set up. Vibe needs `libxkbcommon-x11`, which
+desktops almost always have; the install script tells you if it's missing.
+`~/.local/lib/vibe-download-manager/uninstall.sh` removes it again.
+
+The macOS and Linux packages are newer and less tested than the Windows installer. They
+don't update themselves yet (watch the [Releases](../../releases) page), and Linux has no
+tray icon yet.
 
 ## Usage
 
@@ -143,8 +165,14 @@ Run `vdm --help` or `vdm get --help` for every option.
 The extension isn't in the browser stores yet. Download
 `VibeDownloadManager-extension-<version>.zip` from the [Releases](../../releases) page and
 unzip it (or use the [`extension/`](extension) folder of a source checkout). It needs the
-browser connection, which the Windows installer sets up; when running from source, register
-it yourself with `vdm-nmhost install`. Then:
+browser connection, which the Windows installer and the Linux install script set up. On
+macOS run this once:
+
+```bash
+"/Applications/Vibe Download Manager.app/Contents/MacOS/vdm-nmhost" install
+```
+
+When running from source, register it yourself with `vdm-nmhost install`. Then:
 
 - **Chrome, Edge, Brave:** open `chrome://extensions`, turn on **Developer mode**, click
   **Load unpacked** and pick the unzipped folder.

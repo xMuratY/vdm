@@ -1,19 +1,24 @@
 +++
-title = "Download Vibe for Windows"
-description = "Download Vibe Download Manager, a free and open-source download accelerator for Windows 10 and 11. Installs without admin rights and updates itself."
+title = "Download Vibe for Windows, macOS and Linux"
+description = "Download Vibe Download Manager, a free and open-source download accelerator for Windows, macOS and Linux. Installs without admin rights."
 path = "/download/"
 schema = "software"
 +++
 <section class="wrap page">
-  <h1>Download Vibe for Windows</h1>
-  <p class="lede">Version {{version}} for Windows 10 and 11 (64-bit). Free, open source, no ads.</p>
+  <h1>Download Vibe</h1>
+  <p class="lede">Version {{version}} for Windows, macOS and Linux. Free, open source, no ads.</p>
   <div class="actions">
-    <a class="button primary" href="{{releases}}">Get the installer from GitHub</a>
+    <a class="button primary" href="{{releases}}">Get it from GitHub</a>
     <a class="button" href="{{github}}#build-from-source">Build from source</a>
   </div>
-  <p class="fine">The installer is the <code>VibeDownloadManager-{{version}}-x86_64.msi</code> file under "Assets" on the release page.</p>
+  <p class="fine">Pick your file under "Assets" on the release page:</p>
+  <ul class="fine files">
+    <li><strong>Windows 10 and 11:</strong> <code>VibeDownloadManager-{{version}}-x86_64.msi</code></li>
+    <li><strong>macOS 11 or newer</strong> (Apple silicon and Intel): <code>VibeDownloadManager-{{version}}-macos-universal.dmg</code></li>
+    <li><strong>Linux</strong> (glibc 2.39 or newer, as in Ubuntu 24.04): <code>VibeDownloadManager-{{version}}-linux-x86_64.tar.gz</code></li>
+  </ul>
 
-  <h2>Install in three steps</h2>
+  <h2>Install on Windows in three steps</h2>
   <ol class="download-steps">
     <li><h3>Run the installer</h3><p>It installs for your Windows account only, so it doesn't ask for administrator rights.</p></li>
     <li><h3>Pick your options</h3><p>A desktop shortcut, a Start menu entry, and whether Vibe starts minimized when you sign in. You can change them later.</p></li>
@@ -27,7 +32,9 @@ schema = "software"
       <li><strong>Windows SmartScreen</strong> may warn that the publisher is unknown until the installer is code-signed. Choose "More info", then "Run anyway".</li>
       <li><strong>Video streams</strong> are joined into one <code>.mp4</code> when <a href="https://ffmpeg.org/download.html">ffmpeg</a> is on your PATH. Without it you get the original pieces.</li>
       <li><strong>Unattended installs:</strong> <code>msiexec /i VibeDownloadManager-{{version}}-x86_64.msi /qn</code>. Add <code>DESKTOPSHORTCUT=""</code> or <code>AUTOSTART=""</code> to skip those options.</li>
-      <li><strong>macOS and Linux</strong> builds work from source today; packages are on the way.</li>
+      <li><strong>macOS:</strong> drag the app onto Applications. It isn't notarized by Apple, so the first time open System Settings → Privacy &amp; Security and click "Open Anyway".</li>
+      <li><strong>Linux:</strong> unpack the tarball and run <code>./install.sh</code>. It installs for your user only and adds Vibe to your applications menu.</li>
+      <li><strong>macOS and Linux</strong> packages are newer than the Windows installer and don't update themselves yet.</li>
     </ul>
   </div>
 </section>

@@ -54,8 +54,11 @@ The first release.
 - `vdm get` downloads (and resumes) a file or video stream with the same engine;
   `vdm probe` shows what a server reports before downloading.
 
-### Installer
+### Packages
 - A per-user Windows installer (no administrator rights) that asks about the desktop
   shortcut, the Start menu entry and starting at sign-in, and offers to launch Vibe.
   It also adds `vdm` to your PATH and connects the browser extension.
+- A macOS disk image with a universal app (Apple silicon and Intel), and a Linux
+  tarball with a per-user install script. These are newer and less tested than the
+  Windows installer, and don't update themselves yet.
 

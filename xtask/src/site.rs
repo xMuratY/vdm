@@ -434,7 +434,7 @@ fn post_html(site: &Site, post: &Post, all: &[Post]) -> String {
            <ul class=\"tags\" aria-label=\"Topics\">{tags}</ul>\
            <aside class=\"post-cta\"><h2>Try Vibe Download Manager</h2>\
              <p>Free and open source. Multi-connection downloads that resume, a video stream grabber and browser integration.</p>\
-             <a class=\"button primary\" href=\"{{{{root}}}}download/\">Download for Windows</a></aside>\
+             <a class=\"button primary\" href=\"{{{{root}}}}download/\">Download Vibe</a></aside>\
          </article>\
          <section class=\"wrap more-posts\"><h2>More from the blog</h2><ul class=\"post-list\">{more}</ul></section>",
         blog = site.link("/blog/"),
@@ -478,7 +478,7 @@ fn software_json_ld(site: &Site) -> String {
         "alternateName": "VDM",
         "description": "A free, open-source download manager and accelerator: multi-connection downloads that resume, an HLS/DASH video grabber, and browser integration.",
         "applicationCategory": "UtilitiesApplication",
-        "operatingSystem": "Windows 10, Windows 11",
+        "operatingSystem": "Windows 10, Windows 11, macOS 11, Linux",
         "softwareVersion": site.version,
         "license": "https://opensource.org/license/mit",
         "isAccessibleForFree": true,
