@@ -102,6 +102,8 @@ bad_connections = "连接数必须为 1 到 {max}。"
 bad_checksum = "校验和：{error}"
 
 [settings]
+ask_browser = "开始浏览器发来的下载前先询问"
+clipboard_always = "Vibe 最小化或在托盘中时也提示"
 title = "设置"
 section_downloads = "下载"
 download_folder = "下载文件夹"
@@ -331,3 +333,18 @@ log_verifying = "正在校验文件。"
 log_moved = "已移至 {queue}。"
 log_failed = "失败：{error}"
 log_completed = "已保存为 {path}"
+
+# A download the browser extension handed over, shown in the Add dialog.
+[prompt]
+title = "来自浏览器的下载"
+subtitle = "来自 {site}"
+checking = "正在检查服务器…"
+size = "大小：{size}"
+size_unknown = "服务器未报告大小"
+resumable = "中断后可继续"
+not_resumable = "中断后无法继续"
+check_failed = "无法检查服务器（{error}）。你仍可尝试下载。"
+timed_out = "15 秒内无响应"
+waiting = "还有 {count} 项在等待"
+cancel_all = "全部取消"
+download_all = "全部下载（{count}）"

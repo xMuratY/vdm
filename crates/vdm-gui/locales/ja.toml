@@ -102,6 +102,8 @@ bad_connections = "接続数は 1 ～ {max} で指定してください。"
 bad_checksum = "チェックサム: {error}"
 
 [settings]
+ask_browser = "ブラウザーからのダウンロードを開始する前に確認する"
+clipboard_always = "Vibe を最小化中またはトレイ内にいる場合も提案する"
 title = "設定"
 section_downloads = "ダウンロード"
 download_folder = "ダウンロード フォルダー"
@@ -331,3 +333,18 @@ log_verifying = "ファイルを検証しています。"
 log_moved = "{queue} に移動しました。"
 log_failed = "失敗しました: {error}"
 log_completed = "{path} として保存しました"
+
+# A download the browser extension handed over, shown in the Add dialog.
+[prompt]
+title = "ブラウザーからのダウンロード"
+subtitle = "{site} から"
+checking = "サーバーを確認中…"
+size = "サイズ: {size}"
+size_unknown = "サイズは通知されませんでした"
+resumable = "中断しても再開できます"
+not_resumable = "中断すると再開できません"
+check_failed = "サーバーを確認できませんでした ({error})。ダウンロードは試せます。"
+timed_out = "15 秒以内に応答がありません"
+waiting = "ほか {count} 件が待機中"
+cancel_all = "すべてキャンセル"
+download_all = "すべてダウンロード ({count})"

@@ -102,6 +102,8 @@ bad_connections = "Le connessioni devono essere da 1 a {max}."
 bad_checksum = "Checksum: {error}"
 
 [settings]
+ask_browser = "Chiedi prima di avviare i download dal browser"
+clipboard_always = "Anche quando Vibe è ridotto a icona o nell'area di notifica"
 title = "Impostazioni"
 section_downloads = "Download"
 download_folder = "Cartella di download"
@@ -331,3 +333,18 @@ log_verifying = "Controllo del file."
 log_moved = "Spostato in {queue}."
 log_failed = "Non riuscito: {error}"
 log_completed = "Salvato come {path}"
+
+# A download the browser extension handed over, shown in the Add dialog.
+[prompt]
+title = "Scarica dal browser"
+subtitle = "Da {site}"
+checking = "Controllo del server…"
+size = "Dimensione: {size}"
+size_unknown = "Dimensione non indicata"
+resumable = "Si può riprendere se interrotto"
+not_resumable = "Non si può riprendere se interrotto"
+check_failed = "Impossibile controllare il server ({error}). Puoi comunque provare a scaricare."
+timed_out = "nessuna risposta in 15 secondi"
+waiting = "Altri in attesa: {count}"
+cancel_all = "Annulla tutto"
+download_all = "Scarica tutto ({count})"

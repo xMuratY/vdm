@@ -102,6 +102,8 @@ bad_connections = "Bağlantı sayısı 1 ile {max} arasında olmalıdır."
 bad_checksum = "Sağlama toplamı: {error}"
 
 [settings]
+ask_browser = "Tarayıcıdan gelen indirmeleri başlatmadan önce sor"
+clipboard_always = "Vibe simge durumundayken veya sistem tepsisindeyken de"
 title = "Ayarlar"
 section_downloads = "İndirmeler"
 download_folder = "İndirme klasörü"
@@ -331,3 +333,18 @@ log_verifying = "Dosya denetleniyor."
 log_moved = "{queue} kuyruğuna taşındı."
 log_failed = "Başarısız: {error}"
 log_completed = "Şu adla kaydedildi: {path}"
+
+# A download the browser extension handed over, shown in the Add dialog.
+[prompt]
+title = "Tarayıcıdan indirme"
+subtitle = "Kaynak: {site}"
+checking = "Sunucu denetleniyor…"
+size = "Boyut: {size}"
+size_unknown = "Boyut bildirilmedi"
+resumable = "Kesilirse devam ettirilebilir"
+not_resumable = "Kesilirse devam ettirilemez"
+check_failed = "Sunucu denetlenemedi ({error}). Yine de indirmeyi deneyebilirsiniz."
+timed_out = "15 saniyede yanıt gelmedi"
+waiting = "Bekleyen: {count}"
+cancel_all = "Tümünü iptal et"
+download_all = "Tümünü indir ({count})"

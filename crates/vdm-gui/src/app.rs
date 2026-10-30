@@ -207,6 +207,14 @@ enum Message {
     AddChecksum(String),
     SubmitAdd,
     Added(Result<DownloadId, String>),
+    /// The server's answer about a browser download shown in the Add dialog (by URL).
+    Probed(String, Result<(Option<u64>, bool, String), String>),
+    /// Add the shown browser download and every one still waiting.
+    AcceptAllPrompts,
+    /// Close the dialog and drop every browser download still waiting.
+    DiscardPrompts,
+    ToggleAskBrowser(bool),
+    ToggleClipboardAlways(bool),
     // Settings dialog
     SetDownloadDir(String),
     SetMaxActive(String),
@@ -273,6 +281,26 @@ struct AddForm {
     queue: QueueId,
     error: Option<String>,
     busy: bool,
+    /// Set when the browser handed this download over: its request details
+    /// (cookies, referrer, user agent) and what the server said about it.
+    browser: Option<BrowserDownload>,
+}
+
+/// A download from the browser extension, waiting in the Add dialog.
+#[derive(Debug, Clone)]
+struct BrowserDownload {
+    request: NewDownload,
+    /// The folder the dialog suggested, to tell whether the user changed it.
+    suggested_folder: String,
+    probe: Probe,
+}
+
+/// What the server said when the dialog asked it about the file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Probe {
+    Checking,
+    Known { size: Option<u64>, resumable: bool },
+    Failed(String),
 }
 
 #[derive(Debug, Clone)]
@@ -352,6 +380,8 @@ struct App {
     demo_details: Option<bool>,
     /// The window's width, to fit the toolbar and the details panel.
     window_width: f32,
+    /// Browser downloads waiting for their turn in the Add dialog.
+    prompts: std::collections::VecDeque<NewDownload>,
 }
 
 /// "The computer shuts down in 42 s", with a way to cancel.
@@ -468,6 +498,7 @@ impl App {
             details_stale: false,
             demo_details: None,
             window_width: WINDOW_SIZE.0,
+            prompts: std::collections::VecDeque::new(),
         };
         (app, Task::batch(tasks))
     }
@@ -514,11 +545,75 @@ impl App {
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {
-        let task = self.handle(message);
-        match self.fetch_details() {
-            Some(fetch) => Task::batch([task, fetch]),
-            None => task,
+        let mut tasks = vec![self.handle(message)];
+        tasks.extend(self.fetch_details());
+        tasks.extend(self.next_prompt());
+        Task::batch(tasks)
+    }
+
+    /// Open the next waiting browser download in the Add dialog, once no
+    /// other dialog is up, and bring the window forward for it.
+    fn next_prompt(&mut self) -> Option<Task<Message>> {
+        if self.dialog.is_some() {
+            return None;
         }
+        let new = self.prompts.pop_front()?;
+        self.move_menu = false;
+        self.header_menu = None;
+        let probe = self.probe_task(&new);
+        let folder = new.save_dir.clone().unwrap_or_default();
+        self.dialog = Some(Dialog::Add(AddForm {
+            url: new.url.clone(),
+            folder: folder.clone(),
+            name: new.file_name.clone().unwrap_or_default(),
+            connections: new.connections.unwrap_or(self.settings.connections).to_string(),
+            checksum: new.checksum.clone().unwrap_or_default(),
+            queue: new.queue.unwrap_or(QueueId::MAIN),
+            error: None,
+            busy: false,
+            browser: Some(BrowserDownload {
+                request: new,
+                suggested_folder: folder,
+                probe: Probe::Checking,
+            }),
+        }));
+        self.window_hidden = false;
+        let attention = window::latest().and_then(|id| {
+            window::request_user_attention(id, Some(window::UserAttention::Informational))
+        });
+        Some(Task::batch([probe, show_window(), attention]))
+    }
+
+    /// Ask the server for the size and resume support of a browser download,
+    /// with its cookies and referrer, for the Add dialog.
+    fn probe_task(&self, new: &NewDownload) -> Task<Message> {
+        let options = engine_options(&self.settings, self.secrets.as_deref());
+        let url = new.url.clone();
+        let headers: Vec<(String, String)> = [
+            ("Referer", new.referrer.clone()),
+            ("User-Agent", new.user_agent.clone()),
+            ("Cookie", new.cookies.clone()),
+        ]
+        .into_iter()
+        .filter_map(|(name, value)| value.map(|v| (name.to_owned(), v)))
+        .collect();
+        let key = url.clone();
+        Task::perform(
+            async move {
+                let downloader = vdm_core::Downloader::new(options).map_err(|e| e.to_string())?;
+                let cancel = vdm_core::CancellationToken::new();
+                let probe = downloader.probe(&url, &headers, &cancel);
+                match tokio::time::timeout(Duration::from_secs(15), probe).await {
+                    Ok(Ok(info)) => Ok((info.size, info.resumable, info.file_name)),
+                    Ok(Err(err)) => Err(err.to_string()),
+                    Err(_) => {
+                        cancel.cancel();
+                        Err(t!("prompt.timed_out"))
+                    }
+                }
+            },
+            move |result| Message::Probed(key.clone(), result),
+        )
     }
 
     /// The download the details panel shows: the only selected one.
@@ -569,6 +664,24 @@ impl App {
                     Some("select-all") => self.update(Message::SelectAll),
                     // For screenshots of the details panel: the first download
                     // that is running (else the first one), with the panel open.
+                    // For screenshots of the browser prompt: two downloads as
+                    // the extension would hand them over.
+                    Some("prompt") => {
+                        let demo = [
+                            "http://127.0.0.1:8093/Quarterly-Report-Q3.pdf",
+                            "http://127.0.0.1:8096/VSCodeUserSetup-x64.exe",
+                        ];
+                        for url in demo {
+                            let mut new = self.new_download(url.into(), None, None, None);
+                            new.save_dir = None;
+                            new.file_name = url.rsplit('/').next().map(str::to_owned);
+                            new.referrer = Some("https://intranet.example.com/reports".into());
+                            new.cookies = Some("session=demo".into());
+                            let new = self.complete_download(new);
+                            self.prompts.push_back(new);
+                        }
+                        Task::none()
+                    }
                     Some(mode @ ("details" | "details-end")) => {
                         self.demo_details = Some(mode == "details-end");
                         self.settings.details_panel = true;
@@ -762,6 +875,20 @@ impl App {
                 return iced::clipboard::read().map(Message::ClipboardNow);
             }
             Message::ToggleAutostart(v) => self.with_settings(|f| f.launch_at_startup = v),
+            Message::ToggleAskBrowser(v) => self.with_settings(|f| f.ask_browser_downloads = v),
+            Message::ToggleClipboardAlways(v) => self.with_settings(|f| f.clipboard_always = v),
+            Message::Probed(url, result) => self.on_probed(&url, result),
+            Message::AcceptAllPrompts => {
+                let rest: Vec<NewDownload> = self.prompts.drain(..).collect();
+                let current = self.submit_add();
+                return Task::batch(
+                    std::iter::once(current).chain(rest.into_iter().map(|n| self.add_task(n))),
+                );
+            }
+            Message::DiscardPrompts => {
+                self.prompts.clear();
+                self.dialog = None;
+            }
             Message::WindowResized(width) => self.window_width = width,
             Message::ToggleDetails => {
                 self.settings.details_panel = !self.settings.details_panel;
@@ -1149,7 +1276,14 @@ impl App {
                     .into_iter()
                     .map(|url| self.new_download(url, None, None, None))
                     .collect();
-                news.extend(request.downloads.into_iter().map(|d| self.complete_download(d)));
+                let browser: Vec<_> =
+                    request.downloads.into_iter().map(|d| self.complete_download(d)).collect();
+                if self.settings.ask_browser_downloads {
+                    // Each opens in the Add dialog in turn (see `next_prompt`).
+                    self.prompts.extend(browser);
+                } else {
+                    news.extend(browser);
+                }
                 let adds = if self.engine.is_some() {
                     Task::batch(news.into_iter().map(|new| self.add_task(new)))
                 } else {
@@ -1171,10 +1305,12 @@ impl App {
                     .map(Message::WindowMinimized);
             }
             Message::ClipboardNow(text) => {
-                // Always observe, so the watcher's memory stays current.
+                // Always observe, so the watcher's memory stays current. Links
+                // copied while the window is minimized or in the tray are only
+                // offered when the user asked for that.
+                let in_view = !self.window_hidden && !self.minimized;
                 if let Some(url) = self.clipboard.observe(text.as_deref())
-                    && !self.window_hidden
-                    && !self.minimized
+                    && (in_view || self.settings.clipboard_always)
                     && self.engine.is_some()
                     && self.dialog.is_none()
                 {
@@ -1185,6 +1321,7 @@ impl App {
                         queue: self.current_queue(),
                         ..AddForm::default()
                     }));
+                    self.window_hidden = false;
                     return show_window();
                 }
             }
@@ -1407,11 +1544,53 @@ impl App {
         let mut new = self.new_download(url, folder, name, Some(connections));
         new.checksum = checksum;
         new.queue = Some(f.queue);
+        if let Some(browser) = &f.browser {
+            new.referrer.clone_from(&browser.request.referrer);
+            new.user_agent.clone_from(&browser.request.user_agent);
+            new.cookies.clone_from(&browser.request.cookies);
+        }
+        if self.engine.is_none() {
+            // Still starting: it is added once the engine is up.
+            self.pending.push(new);
+            self.dialog = None;
+            return Task::none();
+        }
         self.with_add(|f| {
             f.busy = true;
             f.error = None;
         });
         self.add_task(new)
+    }
+
+    /// Show the server's answer in the Add dialog, if it still shows that download.
+    /// A name from the server fills an empty name field, and picks the
+    /// folder for its type unless the user chose one.
+    fn on_probed(&mut self, url: &str, result: Result<(Option<u64>, bool, String), String>) {
+        let Some(Dialog::Add(f)) = &self.dialog else { return };
+        if f.url != url || f.browser.is_none() {
+            return;
+        }
+        let renamed = match &result {
+            Ok((_, _, name)) if f.name.trim().is_empty() && !name.is_empty() => Some(name.clone()),
+            _ => None,
+        };
+        let folder = renamed.as_deref().map(|name| self.default_folder_for_name(name));
+        self.with_add(|f| {
+            let Some(browser) = &mut f.browser else { return };
+            browser.probe = match result {
+                Ok((size, resumable, _)) => Probe::Known { size, resumable },
+                Err(err) => Probe::Failed(err),
+            };
+            if let Some(name) = renamed {
+                f.name = name;
+                if let Some(folder) = folder
+                    && f.folder == browser.suggested_folder
+                {
+                    browser.suggested_folder.clone_from(&folder);
+                    f.folder = folder;
+                }
+            }
+        });
     }
 
     fn add_task(&self, new: NewDownload) -> Task<Message> {

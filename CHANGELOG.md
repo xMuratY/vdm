@@ -4,6 +4,16 @@ All notable changes to Vibe Download Manager are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+- Downloads the browser extension hands over open in Vibe's window first, with the
+  size and resume support from the server, so you can change the folder, name or
+  queue, or cancel. Several at once can be downloaded or cancelled together. Turn it
+  off in Settings to start them right away as before.
+- Links copied to the clipboard can be offered even while Vibe is minimized or in the
+  tray (Settings, off by default); the window comes forward with the Add dialog.
+
 ## 0.1.0 - 2026-10-25
 
 The first release.

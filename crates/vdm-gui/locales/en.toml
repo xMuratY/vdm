@@ -102,6 +102,8 @@ bad_connections = "Connections must be 1 to {max}."
 bad_checksum = "Checksum: {error}"
 
 [settings]
+ask_browser = "Ask before starting downloads from the browser"
+clipboard_always = "Also while Vibe is minimized or in the tray"
 title = "Settings"
 section_downloads = "Downloads"
 download_folder = "Download folder"
@@ -331,3 +333,18 @@ log_verifying = "Checking the file."
 log_moved = "Moved to {queue}."
 log_failed = "Failed: {error}"
 log_completed = "Saved as {path}"
+
+# A download the browser extension handed over, shown in the Add dialog.
+[prompt]
+title = "Download from your browser"
+subtitle = "From {site}"
+checking = "Checking the server…"
+size = "Size: {size}"
+size_unknown = "Size not reported"
+resumable = "Can resume if interrupted"
+not_resumable = "Can't resume if interrupted"
+check_failed = "Couldn't check the server ({error}). You can still try to download it."
+timed_out = "no answer in 15 seconds"
+waiting = "{count} more waiting"
+cancel_all = "Cancel all"
+download_all = "Download all ({count})"

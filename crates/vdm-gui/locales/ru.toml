@@ -102,6 +102,8 @@ bad_connections = "Число соединений должно быть от 1 
 bad_checksum = "Контрольная сумма: {error}"
 
 [settings]
+ask_browser = "Спрашивать перед началом загрузок из браузера"
+clipboard_always = "Также когда Vibe свёрнут или находится в трее"
 title = "Настройки"
 section_downloads = "Загрузки"
 download_folder = "Папка загрузок"
@@ -331,3 +333,18 @@ log_verifying = "Проверка файла."
 log_moved = "Перенесено в «{queue}»."
 log_failed = "Ошибка: {error}"
 log_completed = "Сохранено как {path}"
+
+# A download the browser extension handed over, shown in the Add dialog.
+[prompt]
+title = "Загрузка из браузера"
+subtitle = "Источник: {site}"
+checking = "Проверка сервера…"
+size = "Размер: {size}"
+size_unknown = "Размер не сообщён"
+resumable = "Можно докачать после обрыва"
+not_resumable = "Докачка после обрыва невозможна"
+check_failed = "Не удалось проверить сервер ({error}). Скачать всё равно можно попробовать."
+timed_out = "нет ответа в течение 15 секунд"
+waiting = "Ожидают: {count}"
+cancel_all = "Отменить все"
+download_all = "Скачать все ({count})"

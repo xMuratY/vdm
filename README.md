@@ -46,12 +46,12 @@ finds, and stays out of the way in the tray.
 - Saves HLS (`.m3u8`) and DASH (`.mpd`) streams: picks the quality, fetches segments in parallel, decrypts AES-128, and joins audio and video into one `.mp4` (with `ffmpeg` on your PATH).
 
 **Browser integration**
-- Extension for Chrome, Edge, Brave and Firefox. It takes over browser downloads, with the right cookies, referrer and user agent.
+- Extension for Chrome, Edge, Brave and Firefox. It takes over browser downloads, with the right cookies, referrer and user agent, and Vibe asks in its own window before starting each one: the dialog shows the size and lets you change the folder or name (turn this off in Settings).
 - "Download with Vibe" in the context menu, and a list of the video streams the current page plays.
 
 **Everyday comfort**
 - Sorts downloads into folders by type (Video, Music, Documents, Compressed, Programs).
-- Offers to download links you copy to the clipboard, while its window is open.
+- Offers to download links you copy to the clipboard: while its window is open, or always if you choose.
 - Tray icon, desktop notifications, and a single instance: new links go to the running app.
 - Optionally starts when you sign in, quietly minimized to the tray.
 - Sidebar filters, search, and per-type categories.

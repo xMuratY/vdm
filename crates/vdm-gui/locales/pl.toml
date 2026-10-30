@@ -102,6 +102,8 @@ bad_connections = "Liczba połączeń musi mieścić się w zakresie od 1 do {ma
 bad_checksum = "Suma kontrolna: {error}"
 
 [settings]
+ask_browser = "Pytaj przed rozpoczęciem pobierania z przeglądarki"
+clipboard_always = "Także gdy Vibe jest zminimalizowany lub w zasobniku"
 title = "Ustawienia"
 section_downloads = "Pobieranie"
 download_folder = "Folder pobierania"
@@ -331,3 +333,18 @@ log_verifying = "Sprawdzanie pliku."
 log_moved = "Przeniesiono do: {queue}."
 log_failed = "Niepowodzenie: {error}"
 log_completed = "Zapisano jako {path}"
+
+# A download the browser extension handed over, shown in the Add dialog.
+[prompt]
+title = "Pobieranie z przeglądarki"
+subtitle = "Z: {site}"
+checking = "Sprawdzanie serwera…"
+size = "Rozmiar: {size}"
+size_unknown = "Rozmiar nieznany"
+resumable = "Można wznowić po przerwaniu"
+not_resumable = "Nie można wznowić po przerwaniu"
+check_failed = "Nie udało się sprawdzić serwera ({error}). Nadal możesz spróbować pobrać plik."
+timed_out = "brak odpowiedzi w ciągu 15 sekund"
+waiting = "Oczekuje: {count}"
+cancel_all = "Anuluj wszystkie"
+download_all = "Pobierz wszystkie ({count})"

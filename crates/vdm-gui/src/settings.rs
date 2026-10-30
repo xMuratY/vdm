@@ -28,6 +28,11 @@ pub struct Settings {
     pub speed_limit: Option<u64>,
     /// Offer to download links to files copied to the clipboard.
     pub watch_clipboard: bool,
+    /// Offer copied links even while the window is minimized or in the tray
+    /// (it comes forward with the Add dialog).
+    pub clipboard_always: bool,
+    /// Downloads the browser extension hands over open in the Add dialog first.
+    pub ask_browser_downloads: bool,
     /// Show a desktop notification when a download finishes or fails.
     pub notify: bool,
     /// Closing the window hides it to the tray instead of quitting (where a tray exists).
@@ -62,6 +67,8 @@ impl Default for Settings {
             connections: 8,
             speed_limit: None,
             watch_clipboard: true,
+            clipboard_always: false,
+            ask_browser_downloads: true,
             notify: true,
             close_to_tray: true,
             use_categories: true,
@@ -183,6 +190,8 @@ pub struct SettingsForm {
     /// Empty = unlimited; otherwise a number with an optional K/M/G suffix (binary multiples), e.g. "500K", "1.5M".
     pub speed_limit: String,
     pub watch_clipboard: bool,
+    pub clipboard_always: bool,
+    pub ask_browser_downloads: bool,
     pub notify: bool,
     pub close_to_tray: bool,
     pub use_categories: bool,
@@ -206,6 +215,8 @@ impl SettingsForm {
             connections: s.connections.to_string(),
             speed_limit: s.speed_limit.map(format_speed).unwrap_or_default(),
             watch_clipboard: s.watch_clipboard,
+            clipboard_always: s.clipboard_always,
+            ask_browser_downloads: s.ask_browser_downloads,
             notify: s.notify,
             close_to_tray: s.close_to_tray,
             use_categories: s.use_categories,
@@ -265,6 +276,8 @@ impl SettingsForm {
             connections,
             speed_limit,
             watch_clipboard: self.watch_clipboard,
+            clipboard_always: self.clipboard_always,
+            ask_browser_downloads: self.ask_browser_downloads,
             notify: self.notify,
             close_to_tray: self.close_to_tray,
             use_categories: self.use_categories,
@@ -571,6 +584,8 @@ mod tests {
             connections: 32,
             speed_limit: Some(3 * 1024 * 1024),
             watch_clipboard: false,
+            clipboard_always: true,
+            ask_browser_downloads: false,
             notify: false,
             close_to_tray: false,
             use_categories: false,

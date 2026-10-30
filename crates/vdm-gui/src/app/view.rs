@@ -8,7 +8,7 @@ use iced::{Alignment, Color, Element, Font, Length, Padding, Theme, color, font,
 use vdm_proto::{DownloadState, Queue, QueueId, WhenDone};
 
 use super::{
-    App, BrowseFor, COLUMN_GAP, ColumnDrag, Dialog, HeaderMenu, LoginForm, Message,
+    AddForm, App, BrowseFor, COLUMN_GAP, ColumnDrag, Dialog, HeaderMenu, LoginForm, Message, Probe,
     SETTINGS_SCROLL, UpdateState, shorten,
 };
 use crate::categories::Category;
@@ -127,7 +127,12 @@ impl App {
         match &self.dialog {
             None => page,
             Some(dialog) => {
-                let width = if matches!(dialog, Dialog::Settings { .. }) { 620.0 } else { 540.0 };
+                let width = match dialog {
+                    Dialog::Settings { .. } => 620.0,
+                    // Room for "Download all" next to Cancel and Download.
+                    Dialog::Add(f) if f.browser.is_some() => 600.0,
+                    _ => 540.0,
+                };
                 stack![page, modal(self.dialog_view(dialog), width)].into()
             }
         }
@@ -728,8 +733,18 @@ impl App {
         match dialog {
             Dialog::Add(f) => {
                 let submit = (!f.busy).then_some(Message::SubmitAdd);
+                let header = match &f.browser {
+                    None => {
+                        dialog_header(Icon::Download, None, t!("add.title"), t!("add.subtitle"))
+                    }
+                    Some(b) => {
+                        let from = b.request.referrer.as_deref().unwrap_or(&f.url);
+                        let site = t!("prompt.subtitle", site = host_of(from));
+                        dialog_header(Icon::Download, None, t!("prompt.title"), site)
+                    }
+                };
                 let mut body = column![
-                    dialog_header(Icon::Download, None, t!("add.title"), t!("add.subtitle"),),
+                    header,
                     field(
                         t!("add.address"),
                         input("https://example.com/file.zip", &f.url)
@@ -769,17 +784,13 @@ impl App {
                 if self.queues.len() > 1 {
                     body = body.push(field(t!("add.queue"), self.queue_picker(f.queue)));
                 }
+                if let Some(b) = &f.browser {
+                    body = body.push(probe_line(&b.probe));
+                }
                 if let Some(err) = &f.error {
                     body = body.push(error_text(err.clone()));
                 }
-                body.push(buttons(
-                    secondary_button(t!("common.cancel"), Some(Message::CloseDialog)),
-                    primary_button(
-                        if f.busy { t!("add.adding") } else { t!("add.download") },
-                        submit,
-                    ),
-                ))
-                .into()
+                body.push(self.add_buttons(f, submit)).into()
             }
             Dialog::Settings { form, login, error } => {
                 let body = column![
@@ -834,6 +845,18 @@ impl App {
                         form.watch_clipboard,
                         t!("settings.watch_clipboard"),
                         Message::ToggleWatchClipboard,
+                    ),
+                    // A refinement of the one above, so it sits indented under it.
+                    container(toggle(
+                        form.clipboard_always,
+                        t!("settings.clipboard_always"),
+                        Message::ToggleClipboardAlways,
+                    ))
+                    .padding(Padding { left: 28.0, ..Padding::ZERO }),
+                    toggle(
+                        form.ask_browser_downloads,
+                        t!("settings.ask_browser"),
+                        Message::ToggleAskBrowser,
                     ),
                     toggle(form.notify, t!("settings.notify"), Message::ToggleNotify),
                     toggle(
@@ -940,6 +963,39 @@ impl App {
                 .into()
             }
         }
+    }
+
+    /// Cancel and Download; with more browser downloads waiting, also
+    /// "Cancel all" and "Download all".
+    fn add_buttons<'a>(&self, f: &AddForm, submit: Option<Message>) -> Element<'a, Message> {
+        let download =
+            primary_button(if f.busy { t!("add.adding") } else { t!("add.download") }, submit);
+        let cancel = secondary_button(t!("common.cancel"), Some(Message::CloseDialog));
+        let waiting = self.prompts.len();
+        if f.browser.is_none() || waiting == 0 {
+            return buttons(cancel, download);
+        }
+        let all = (!f.busy).then_some(Message::AcceptAllPrompts);
+        column![
+            row![
+                text(t!("prompt.waiting", count = waiting)).size(13).style(theme::muted),
+                space().width(Length::Fill),
+                button(text(t!("prompt.cancel_all")).size(13))
+                    .padding([4, 8])
+                    .on_press(Message::DiscardPrompts)
+                    .style(theme::ghost),
+            ]
+            .align_y(Alignment::Center),
+            row![
+                space().width(Length::Fill),
+                cancel,
+                secondary_button(t!("prompt.download_all", count = waiting + 1), all),
+                download,
+            ]
+            .spacing(10),
+        ]
+        .spacing(8)
+        .into()
     }
 
     fn queue_picker(&self, current: QueueId) -> Element<'_, Message> {
@@ -1635,6 +1691,37 @@ fn with_browse<'a>(
     ]
     .spacing(8)
     .align_y(Alignment::Center)
+    .into()
+}
+
+/// What the server said about a browser download: its size and whether it
+/// can resume, or that it couldn't be asked.
+fn probe_line<'a>(probe: &Probe) -> Element<'a, Message> {
+    let (ic, line, tone): (Icon, String, fn(&Tokens) -> Color) = match probe {
+        Probe::Checking => (Icon::Clock, t!("prompt.checking"), |t| t.muted),
+        Probe::Known { size, resumable } => {
+            let size = size.map_or_else(
+                || t!("prompt.size_unknown"),
+                |s| t!("prompt.size", size = model::fmt_bytes(s)),
+            );
+            let resume =
+                if *resumable { t!("prompt.resumable") } else { t!("prompt.not_resumable") };
+            (Icon::Check, format!("{size}  \u{b7}  {resume}"), |t| t.success)
+        }
+        Probe::Failed(err) => (Icon::Alert, t!("prompt.check_failed", error = err), |t| t.warning),
+    };
+    container(
+        row![
+            icon(ic, 16.0)
+                .style(move |theme: &Theme, _| svg::Style { color: Some(tone(&tokens(theme))) }),
+            text(line).size(13).wrapping(text::Wrapping::WordOrGlyph),
+        ]
+        .spacing(10)
+        .align_y(Alignment::Center),
+    )
+    .padding([10, 12])
+    .width(Length::Fill)
+    .style(theme::raised)
     .into()
 }
 
