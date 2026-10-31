@@ -45,6 +45,11 @@ finds, and stays out of the way in the tray.
 **Video streams**
 - Saves HLS (`.m3u8`) and DASH (`.mpd`) streams: picks the quality, fetches segments in parallel, decrypts AES-128, and joins audio and video into one `.mp4` (with `ffmpeg` on your PATH).
 
+**Torrents**
+- Magnet links and `.torrent` files (from the web or your disk), with HTTP and UDP trackers, peer exchange and multi-file torrents. Every piece is checked, and torrents resume like any other download.
+- **Download only** in Settings: never upload to other peers. Otherwise Vibe shares while downloading and seeds afterwards until it has uploaded as much as it downloaded (or you pause it).
+- A small client of its own: no extra libraries. Magnet links need at least one tracker for now (DHT is coming).
+
 **Browser integration**
 - Extension for Chrome, Edge, Brave and Firefox. It takes over browser downloads, with the right cookies, referrer and user agent, and Vibe asks in its own window before starting each one: the dialog shows the size and lets you change the folder or name (turn this off in Settings).
 - "Download with Vibe" in the context menu, and a list of the video streams the current page plays.
@@ -156,6 +161,9 @@ vdm get --limit 2M --checksum sha256:9f86d0… --proxy socks5://127.0.0.1:1080 h
 
 # See what a server reports before downloading
 vdm probe https://example.com/file.zip
+
+# Torrents: a magnet link or a .torrent file, without uploading to other peers
+vdm get --download-only "magnet:?xt=urn:btih:…&tr=udp://tracker.example:1337"
 ```
 
 Run `vdm --help` or `vdm get --help` for every option.

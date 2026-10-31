@@ -92,15 +92,17 @@ async function handleCreated(item) {
 // Sends a link or media URL chosen from the context menu.
 async function handleContextMenu(info, tab) {
   const url = info.linkUrl || info.srcUrl;
-  if (!VDM.isHttpUrl(url)) {
+  const magnet = VDM.isMagnetUrl(url);
+  if (!VDM.isHttpUrl(url) && !magnet) {
     await recordStatus(false, msg("errHttpLinksOnly"));
     return;
   }
+  // Magnet links go to the torrent's peers: no cookies or referrer to send.
   const message = VDM.buildDownloadMessage({
     url,
-    referrer: info.pageUrl || tab?.url || null,
-    cookies: await cookiesFor(url),
-    userAgent: navigator.userAgent,
+    referrer: magnet ? null : info.pageUrl || tab?.url || null,
+    cookies: magnet ? null : await cookiesFor(url),
+    userAgent: magnet ? null : navigator.userAgent,
   });
   const result = await sendToVdm(message);
   await recordStatus(result.ok, result.error);

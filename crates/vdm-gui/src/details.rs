@@ -268,8 +268,10 @@ pub fn piece_map(
                 );
             }
         }
-        // Thin gaps between pieces.
-        for s in segments.iter().skip(1) {
+        // Thin gaps between pieces, when there's room for them (a torrent's
+        // hundreds of cells would otherwise be all gap).
+        let room = f64::from(width) / segments.len() as f64 >= 6.0;
+        for s in segments.iter().skip(1).filter(|_| room) {
             let x = s.start as f64 * scale;
             let _ = write!(
                 svg,
@@ -511,6 +513,12 @@ mod tests {
         assert!(svg.contains(r#"<rect x="100.00" width="100.00""#), "{svg}");
         // One gap, between the two pieces.
         assert_eq!(svg.matches(r#"width="1.5""#).count(), 1);
+
+        // Too many cells for gaps: just the fills.
+        let many: Vec<_> = (0..100).map(|i| seg(i * 10, i * 10 + 10, i * 10 + 10)).collect();
+        let dense = piece_map(&many, None, 200.0, 10.0, &palette());
+        assert_eq!(dense.matches(r#"width="1.5""#).count(), 0);
+        assert_eq!(dense.matches(r#"fill="url(#g)""#).count(), 100);
 
         let plain = piece_map(&[], Some(0.5), 200.0, 10.0, &palette());
         assert!(plain.contains(r#"<rect width="100.00""#), "{plain}");

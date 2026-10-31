@@ -49,7 +49,7 @@ impl Row {
     /// Build a row from a stored record.
     pub fn from_record(rec: &DownloadRecord) -> Self {
         let downloaded = match rec.state {
-            DownloadState::Completed => rec.size.unwrap_or(0),
+            DownloadState::Completed | DownloadState::Seeding => rec.size.unwrap_or(0),
             _ => 0,
         };
         Self {
@@ -70,7 +70,7 @@ impl Row {
 
     /// Fraction done in `0.0..=1.0`, or `None` when the total is unknown.
     pub fn progress(&self) -> Option<f32> {
-        if self.state == DownloadState::Completed {
+        if matches!(self.state, DownloadState::Completed | DownloadState::Seeding) {
             return Some(1.0);
         }
         let total = self.total?;
@@ -93,7 +93,11 @@ impl Row {
 
     /// Queued or downloading.
     pub fn can_pause(&self) -> bool {
-        matches!(self.state, DownloadState::Queued | DownloadState::Downloading)
+        // Pausing a seeding torrent stops the seeding.
+        matches!(
+            self.state,
+            DownloadState::Queued | DownloadState::Downloading | DownloadState::Seeding
+        )
     }
 
     /// Paused or failed.
@@ -380,6 +384,7 @@ pub fn state_label(state: DownloadState) -> String {
         DownloadState::Verifying => crate::i18n::t!("state.verifying"),
         DownloadState::Completed => crate::i18n::t!("state.completed"),
         DownloadState::Failed => crate::i18n::t!("state.failed"),
+        DownloadState::Seeding => crate::i18n::t!("state.seeding"),
     }
 }
 

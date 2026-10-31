@@ -67,7 +67,7 @@ impl Filter {
             Filter::All => true,
             Filter::Active => matches!(r.state, S::Downloading | S::Probing | S::Verifying),
             Filter::Waiting => matches!(r.state, S::Queued | S::Paused),
-            Filter::Completed => r.state == S::Completed,
+            Filter::Completed => matches!(r.state, S::Completed | S::Seeding),
             Filter::Failed => r.state == S::Failed,
             Filter::Category(c) => Category::from_name(&r.file_name) == c,
             Filter::Queue(q) => r.queue == q,
@@ -747,9 +747,18 @@ impl App {
                     header,
                     field(
                         t!("add.address"),
-                        input("https://example.com/file.zip", &f.url)
-                            .on_input(Message::AddUrl)
-                            .on_submit_maybe(submit.clone()),
+                        row![
+                            input("https://example.com/file.zip", &f.url)
+                                .on_input(Message::AddUrl)
+                                .on_submit_maybe(submit.clone())
+                                .width(Length::Fill),
+                            secondary_button(
+                                t!("add.open_torrent"),
+                                Some(Message::Browse(BrowseFor::TorrentFile)),
+                            ),
+                        ]
+                        .spacing(8)
+                        .align_y(Alignment::Center),
                     ),
                     field(
                         t!("add.save_to"),
@@ -857,6 +866,11 @@ impl App {
                         form.ask_browser_downloads,
                         t!("settings.ask_browser"),
                         Message::ToggleAskBrowser,
+                    ),
+                    toggle(
+                        form.torrent_download_only,
+                        t!("settings.torrent_download_only"),
+                        Message::ToggleTorrentDownloadOnly,
                     ),
                     toggle(form.notify, t!("settings.notify"), Message::ToggleNotify),
                     toggle(
@@ -1336,7 +1350,9 @@ fn menu_divider<'a>() -> Element<'a, Message> {
 
 fn progress_style(state: DownloadState) -> impl Fn(&Theme) -> iced::widget::progress_bar::Style {
     move |theme| match state {
-        DownloadState::Completed => theme::progress_in(|t| t.success)(theme),
+        DownloadState::Completed | DownloadState::Seeding => {
+            theme::progress_in(|t| t.success)(theme)
+        }
         DownloadState::Failed => theme::progress_in(|t| t.danger)(theme),
         DownloadState::Paused => theme::progress_in(|t| t.warning)(theme),
         DownloadState::Queued => theme::progress_in(|t| t.muted)(theme),
@@ -1352,6 +1368,7 @@ fn state_tone(state: DownloadState) -> fn(&Tokens) -> Color {
         DownloadState::Queued => |t| t.muted,
         DownloadState::Paused => |t| t.warning,
         DownloadState::Completed => |t| t.success,
+        DownloadState::Seeding => |t| t.accent,
         DownloadState::Failed => |t| t.danger,
     }
 }

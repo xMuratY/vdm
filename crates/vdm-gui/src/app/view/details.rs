@@ -236,8 +236,9 @@ fn pieces<'a>(r: &Row, live: Option<&Live>, t: &Tokens) -> Element<'a, Message> 
     let palette =
         Palette { track: rgb(t.raised), fill_a: rgb(a), fill_b: rgb(b), gap: rgb(t.surface) };
     let doc = details::piece_map(segments, r.progress(), INNER, 14.0, &palette);
+    // Torrents send a map of up to 400 cells, not their pieces: no count then.
     let caption = match segments.len() {
-        0 => r.progress().map(|p| format!("{:.0}%", p * 100.0)).unwrap_or_default(),
+        0 | 65.. => r.progress().map(|p| format!("{:.0}%", p * 100.0)).unwrap_or_default(),
         n => t!(
             "details.pieces",
             count = n,

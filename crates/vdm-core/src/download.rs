@@ -108,6 +108,9 @@ pub struct Completed {
     /// An earlier part was discarded because the file changed on the server,
     /// the server could not resume it, or its progress record was unusable.
     pub restarted: bool,
+    /// A finished torrent that may be seeded (see [`Downloader::seed`]); only
+    /// when [`Options::torrent_upload`] is on.
+    pub seed: Option<Arc<crate::torrent::Seed>>,
 }
 
 #[derive(Debug, Clone)]
@@ -162,6 +165,16 @@ pub struct Options {
     pub proxy: ProxySetting,
     /// Credentials sent to matching sites (HTTP Basic auth, FTP login).
     pub logins: Vec<SiteLogin>,
+    /// Torrents upload to other peers while downloading and seed afterwards
+    /// (until a ratio of 1). Off: download only, never upload.
+    pub torrent_upload: bool,
+    /// Port for incoming torrent peers when uploading; 0 picks one.
+    pub torrent_port: u16,
+    /// Most peers one torrent connects to.
+    pub torrent_max_peers: usize,
+    /// Stop seeding once this many times the torrent's size was uploaded;
+    /// `None` seeds until stopped.
+    pub torrent_seed_ratio: Option<f64>,
 }
 
 impl Default for Options {
@@ -180,6 +193,10 @@ impl Default for Options {
             remux: true,
             proxy: ProxySetting::System,
             logins: Vec::new(),
+            torrent_upload: true,
+            torrent_port: 0,
+            torrent_max_peers: 50,
+            torrent_seed_ratio: Some(1.0),
         }
     }
 }
@@ -217,6 +234,9 @@ impl Downloader {
         headers: &[(String, String)],
         cancel: &CancellationToken,
     ) -> Result<ProbeInfo> {
+        if crate::torrent::is_torrent_url(url) {
+            return self.probe_torrent(url, headers, cancel).await;
+        }
         let url = parse_url(url)?;
         if crate::ftp_download::is_ftp(&url) {
             return self.probe_ftp_info(&url, cancel).await;
@@ -260,6 +280,9 @@ impl Downloader {
     where
         O: Observer,
     {
+        if crate::torrent::is_torrent_url(&req.url) {
+            return self.download_torrent(&req, &mut observer, &cancel).await;
+        }
         let url = parse_url(&req.url)?;
         if crate::ftp_download::is_ftp(&url) {
             return self.download_ftp(&req, &url, &mut observer, &cancel).await;
@@ -429,7 +452,7 @@ impl Downloader {
         drop(ctx);
         let path = slot.finish().await?;
         tracing::info!(path = %path.display(), size, connections, "download complete");
-        Ok(Completed { path, size, resumed_from, restarted })
+        Ok(Completed { path, size, resumed_from, restarted, seed: None })
     }
 
     /// Single stream from the start, for servers that can't resume or don't
@@ -486,7 +509,7 @@ impl Downloader {
         drop(file);
         let path = s.slot.finish().await?;
         tracing::info!(path = %path.display(), size, "download complete");
-        Ok(Completed { path, size, resumed_from: 0, restarted: false })
+        Ok(Completed { path, size, resumed_from: 0, restarted: false, seed: None })
     }
 
     /// One full `GET`, written from the start of the part.

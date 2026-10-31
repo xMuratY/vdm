@@ -54,7 +54,17 @@ fn main() -> anyhow::Result<()> {
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("warn"));
     tracing_subscriber::fmt().with_env_filter(filter).with_writer(std::io::stderr).init();
 
-    let args = Args::parse();
+    let mut args = Args::parse();
+    // Opened from Explorer: `.torrent` files arrive as paths.
+    for url in &mut args.urls {
+        let path = std::path::Path::new(url.as_str());
+        if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("torrent"))
+            && path.is_file()
+            && let Some(file_url) = app::torrent_file_url(path)
+        {
+            *url = file_url;
+        }
+    }
     let paths = match &args.data_dir {
         Some(dir) => settings::Paths::in_dir(dir)?,
         None => settings::Paths::discover()?,

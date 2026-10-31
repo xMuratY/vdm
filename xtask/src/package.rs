@@ -139,6 +139,7 @@ fn desktop_entry() -> String {
          Icon={LINUX_ID}\n\
          Terminal=false\n\
          Categories=Network;FileTransfer;\n\
+         MimeType=x-scheme-handler/magnet;application/x-bittorrent;\n\
          Keywords=download;accelerator;resume;video;\n"
     )
 }
@@ -412,6 +413,7 @@ mod tests {
         assert!(entry.starts_with("[Desktop Entry]\n"));
         assert!(entry.contains("\nExec=\"@DIR@/vdm-gui\" %U\n"));
         assert!(entry.contains("\nIcon=vibe-download-manager\n"));
+        assert!(entry.contains("\nMimeType=x-scheme-handler/magnet;application/x-bittorrent;\n"));
         assert!(entry.lines().all(|l| l.is_empty() || l.starts_with('[') || l.contains('=')));
     }
 

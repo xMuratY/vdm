@@ -177,8 +177,14 @@ impl Slot {
     /// Like [`finish`](Self::finish), but the finished file is `file` (for
     /// media downloads, whose part is a folder of segments).
     pub async fn finish_from(&self, file: &Path) -> Result<PathBuf> {
-        for index in self.index..MAX_CANDIDATES {
-            let target = self.dir.join(numbered(&self.base, index));
+        self.finish_as(file, &self.base, self.index).await
+    }
+
+    /// Like [`finish_from`](Self::finish_from), named after `base` (numbered
+    /// from `first` if taken): torrents learn their real name only later.
+    pub async fn finish_as(&self, file: &Path, base: &str, first: u32) -> Result<PathBuf> {
+        for index in first..MAX_CANDIDATES {
+            let target = self.dir.join(numbered(base, index));
             if exists(&target).await? {
                 continue;
             }
@@ -191,7 +197,7 @@ impl Slot {
             return Ok(target);
         }
         Err(Error::Io {
-            path: self.dir.join(&self.base),
+            path: self.dir.join(base),
             source: std::io::Error::new(ErrorKind::AlreadyExists, "no free file name"),
         })
     }

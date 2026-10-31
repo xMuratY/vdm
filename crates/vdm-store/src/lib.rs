@@ -474,6 +474,7 @@ fn state_text(state: DownloadState) -> &'static str {
         DownloadState::Downloading => "downloading",
         DownloadState::Paused => "paused",
         DownloadState::Verifying => "verifying",
+        DownloadState::Seeding => "seeding",
         DownloadState::Completed => "completed",
         DownloadState::Failed => "failed",
     }
@@ -486,6 +487,7 @@ fn state_from_text(text: &str) -> Result<DownloadState> {
         "downloading" => DownloadState::Downloading,
         "paused" => DownloadState::Paused,
         "verifying" => DownloadState::Verifying,
+        "seeding" => DownloadState::Seeding,
         "completed" => DownloadState::Completed,
         "failed" => DownloadState::Failed,
         other => return Err(Error::Corrupt(format!("unknown download state `{other}`"))),

@@ -96,6 +96,9 @@ pub fn is_download_link(text: &str) -> bool {
     if text.chars().any(char::is_whitespace) {
         return false;
     }
+    if text.get(..20).is_some_and(|s| s.eq_ignore_ascii_case("magnet:?xt=urn:btih:")) {
+        return true;
+    }
     let Some(rest) = strip_http_scheme(text) else {
         return false;
     };

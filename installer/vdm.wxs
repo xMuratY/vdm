@@ -9,7 +9,7 @@
   Per-user: installs to %LOCALAPPDATA%\Programs\Vibe Download Manager without admin rights,
   which also lets updates install silently.
 
-  The options page sets DESKTOPSHORTCUT, STARTMENUSHORTCUT and AUTOSTART ("1" or empty).
+  The options page sets DESKTOPSHORTCUT, STARTMENUSHORTCUT, AUTOSTART and TORRENTS ("1" or empty).
   Each choice is saved under HKCU\Software\Vibe Download Manager as "1" or "0" and read back
   on the next install, so a silent update (msiexec /qn) keeps what the user picked. The app's
   own "Start when I sign in" setting writes the same AutoStart value.
@@ -49,6 +49,10 @@
       <RegistrySearch Id="SavedAutoStart" Root="HKCU" Key="Software\Vibe Download Manager"
                       Name="AutoStart" Type="raw" />
     </Property>
+    <Property Id="TORRENTS" Value="1" Secure="yes">
+      <RegistrySearch Id="SavedTorrents" Root="HKCU" Key="Software\Vibe Download Manager"
+                      Name="Torrents" Type="raw" />
+    </Property>
     <!-- A checkbox is ticked whenever its property has any value, so "0" must become empty. -->
     <SetProperty Id="DESKTOPSHORTCUT" Action="ClearDesktopShortcut" Value="{}" After="AppSearch"
                  Sequence="both" Condition="DESKTOPSHORTCUT = &quot;0&quot;" />
@@ -56,6 +60,8 @@
                  Sequence="both" Condition="STARTMENUSHORTCUT = &quot;0&quot;" />
     <SetProperty Id="AUTOSTART" Action="ClearAutoStart" Value="{}" After="AppSearch"
                  Sequence="both" Condition="AUTOSTART = &quot;0&quot;" />
+    <SetProperty Id="TORRENTS" Action="ClearTorrents" Value="{}" After="AppSearch"
+                 Sequence="both" Condition="TORRENTS = &quot;0&quot;" />
     <!-- What gets saved: "1" or "0" (never empty, which would read back as the default). -->
     <SetProperty Id="SAVE_DESKTOP" Action="SaveDesktopOn" Value="1" Before="InstallInitialize"
                  Sequence="execute" Condition="DESKTOPSHORTCUT" />
@@ -69,6 +75,10 @@
                  Sequence="execute" Condition="AUTOSTART" />
     <SetProperty Id="SAVE_AUTOSTART" Action="SaveAutoStartOff" Value="0" Before="InstallInitialize"
                  Sequence="execute" Condition="NOT AUTOSTART" />
+    <SetProperty Id="SAVE_TORRENTS" Action="SaveTorrentsOn" Value="1" Before="InstallInitialize"
+                 Sequence="execute" Condition="TORRENTS" />
+    <SetProperty Id="SAVE_TORRENTS" Action="SaveTorrentsOff" Value="0" Before="InstallInitialize"
+                 Sequence="execute" Condition="NOT TORRENTS" />
 
     <!-- ============================================================ files -->
 
@@ -87,6 +97,8 @@
                          Type="string" Value="[SAVE_STARTMENU]" />
           <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="AutoStart"
                          Type="string" Value="[SAVE_AUTOSTART]" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="Torrents"
+                         Type="string" Value="[SAVE_TORRENTS]" />
           <RemoveFolder Id="RemoveInstallFolder" On="uninstall" />
         </Component>
 
@@ -127,6 +139,30 @@
           <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="AutoStartEntry"
                          Type="integer" Value="1" KeyPath="yes" />
         </Component>
+
+        <!-- Magnet links and .torrent files open in Vibe (for this user). -->
+        <Component Id="TorrentLinks" Condition="TORRENTS">
+          <RegistryValue Root="HKCU" Key="Software\Classes\magnet" Type="string"
+                         Value="URL:Magnet link" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\magnet" Name="URL Protocol"
+                         Type="string" Value="" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\magnet\DefaultIcon" Type="string"
+                         Value="&quot;[INSTALLFOLDER]vdm-gui.exe&quot;,0" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\magnet\shell\open\command" Type="string"
+                         Value="&quot;[INSTALLFOLDER]vdm-gui.exe&quot; &quot;%1&quot;" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\.torrent" Type="string"
+                         Value="VibeDownloadManager.torrent" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\.torrent" Name="Content Type"
+                         Type="string" Value="application/x-bittorrent" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\VibeDownloadManager.torrent" Type="string"
+                         Value="BitTorrent file" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\VibeDownloadManager.torrent\DefaultIcon"
+                         Type="string" Value="&quot;[INSTALLFOLDER]vdm-gui.exe&quot;,0" />
+          <RegistryValue Root="HKCU" Key="Software\Classes\VibeDownloadManager.torrent\shell\open\command"
+                         Type="string" Value="&quot;[INSTALLFOLDER]vdm-gui.exe&quot; &quot;%1&quot;" />
+          <RegistryValue Root="HKCU" Key="Software\Vibe Download Manager" Name="TorrentLinks"
+                         Type="integer" Value="1" KeyPath="yes" />
+        </Component>
       </Directory>
       </Directory>
     </StandardDirectory>
@@ -160,6 +196,7 @@
       <ComponentRef Id="Cli" />
       <ComponentRef Id="NativeHost" />
       <ComponentRef Id="AutoStartEntry" />
+      <ComponentRef Id="TorrentLinks" />
       <ComponentRef Id="StartMenuShortcut" />
       <ComponentRef Id="DesktopShortcut" />
     </Feature>
@@ -241,8 +278,11 @@
         <Control Id="AutoStart" Type="CheckBox" X="20" Y="110" Width="330" Height="17"
                  Property="AUTOSTART" CheckBoxValue="1"
                  Text="Start Vibe when I &amp;sign in (minimized to the tray)" />
-        <Control Id="Note" Type="Text" X="37" Y="129" Width="310" Height="28" NoPrefix="yes"
+        <Control Id="Note" Type="Text" X="37" Y="129" Width="310" Height="14" NoPrefix="yes"
                  Text="You can change this later in Settings." />
+        <Control Id="Torrents" Type="CheckBox" X="20" Y="150" Width="330" Height="17"
+                 Property="TORRENTS" CheckBoxValue="1"
+                 Text="Open &amp;magnet links and .torrent files with Vibe" />
         <Control Id="Location" Type="Text" X="20" Y="190" Width="330" Height="30" NoPrefix="yes"
                  Text="Installs for you only, in [INSTALLFOLDER], without administrator rights." />
 

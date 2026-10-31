@@ -215,6 +215,7 @@ enum Message {
     DiscardPrompts,
     ToggleAskBrowser(bool),
     ToggleClipboardAlways(bool),
+    ToggleTorrentDownloadOnly(bool),
     // Settings dialog
     SetDownloadDir(String),
     SetMaxActive(String),
@@ -269,6 +270,8 @@ enum Message {
 enum BrowseFor {
     DownloadDir,
     AddFolder,
+    /// A `.torrent` file for the Add dialog's address.
+    TorrentFile,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -877,6 +880,9 @@ impl App {
             Message::ToggleAutostart(v) => self.with_settings(|f| f.launch_at_startup = v),
             Message::ToggleAskBrowser(v) => self.with_settings(|f| f.ask_browser_downloads = v),
             Message::ToggleClipboardAlways(v) => self.with_settings(|f| f.clipboard_always = v),
+            Message::ToggleTorrentDownloadOnly(v) => {
+                self.with_settings(|f| f.torrent_download_only = v);
+            }
             Message::Probed(url, result) => self.on_probed(&url, result),
             Message::AcceptAllPrompts => {
                 let rest: Vec<NewDownload> = self.prompts.drain(..).collect();
@@ -1001,10 +1007,24 @@ impl App {
             Message::LoginPassword(v) => self.with_login(|l| l.password = v),
             Message::AddLogin => return self.add_login(),
             Message::RemoveLogin(i) => return self.remove_login(i),
+            Message::Browse(BrowseFor::TorrentFile) => {
+                let (title, filter) = (t!("add.open_torrent"), t!("files.torrent_files"));
+                return Task::perform(
+                    async move {
+                        rfd::AsyncFileDialog::new()
+                            .set_title(title)
+                            .add_filter(filter, &["torrent"])
+                            .pick_file()
+                            .await
+                            .map(|h| h.path().to_path_buf())
+                    },
+                    |picked| Message::Picked(BrowseFor::TorrentFile, picked),
+                );
+            }
             Message::Browse(target) => {
                 let title = match target {
                     BrowseFor::DownloadDir => t!("settings.download_folder"),
-                    BrowseFor::AddFolder => t!("add.save_to"),
+                    BrowseFor::AddFolder | BrowseFor::TorrentFile => t!("add.save_to"),
                 };
                 return Task::perform(
                     async move {
@@ -1023,6 +1043,14 @@ impl App {
                 match target {
                     BrowseFor::DownloadDir => self.with_settings(|f| f.download_dir = path),
                     BrowseFor::AddFolder => self.with_add(|f| f.folder = path),
+                    BrowseFor::TorrentFile => {
+                        if let Some(url) = torrent_file_url(std::path::Path::new(&path)) {
+                            self.with_add(|f| {
+                                f.url = url;
+                                f.error = None;
+                            });
+                        }
+                    }
                 }
             }
             Message::ImportLinks => {
@@ -1271,11 +1299,21 @@ impl App {
             Message::Ipc(request) => {
                 // Plain URLs from a second launch, full downloads (with cookies)
                 // from the browser extension.
-                let mut news: Vec<_> = request
-                    .urls
+                // Torrent links come from the browser via Windows (magnet links,
+                // .torrent files): they get the same confirmation as browser downloads.
+                let (torrents, plain): (Vec<_>, Vec<_>) =
+                    request.urls.into_iter().partition(|u| vdm_core::is_torrent_url(u));
+                let mut news: Vec<_> =
+                    plain.into_iter().map(|url| self.new_download(url, None, None, None)).collect();
+                let torrents: Vec<_> = torrents
                     .into_iter()
                     .map(|url| self.new_download(url, None, None, None))
                     .collect();
+                if self.settings.ask_browser_downloads {
+                    self.prompts.extend(torrents);
+                } else {
+                    news.extend(torrents);
+                }
                 let browser: Vec<_> =
                     request.downloads.into_iter().map(|d| self.complete_download(d)).collect();
                 if self.settings.ask_browser_downloads {
@@ -1875,8 +1913,17 @@ fn engine_options(settings: &Settings, secrets: Option<&dyn SecretStore>) -> Opt
         connections: settings.connections,
         proxy: settings.proxy.parse().unwrap_or(ProxySetting::System),
         logins,
+        torrent_upload: !settings.torrent_download_only,
         ..Options::default()
     }
+}
+
+/// A `.torrent` file as a `file://` URL, the way downloads refer to it.
+pub fn torrent_file_url(path: &std::path::Path) -> Option<String> {
+    let path = std::fs::canonicalize(path).ok()?;
+    // Windows' canonical form starts with `\\?\`, which file URLs don't take.
+    let path = PathBuf::from(path.to_string_lossy().trim_start_matches(r"\\?\"));
+    reqwest::Url::from_file_path(path).ok().map(String::from)
 }
 
 async fn start_engine(

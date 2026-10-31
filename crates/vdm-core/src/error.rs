@@ -40,6 +40,9 @@ pub enum Error {
 
     #[error("FTP: {message}")]
     Ftp { message: String, transient: bool },
+
+    #[error("{0}")]
+    Torrent(String),
 }
 
 impl Error {

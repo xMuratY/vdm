@@ -169,7 +169,7 @@ impl Downloader {
         let path = slot.finish().await?;
         tracing::info!(path = %path.display(), size = offset, "FTP download complete");
         observer.progress(Progress { downloaded: offset, total: Some(offset) });
-        Ok(Completed { path, size: offset, resumed_from, restarted })
+        Ok(Completed { path, size: offset, resumed_from, restarted, seed: None })
     }
 
     /// One connection: RETR from `offset` to the end.

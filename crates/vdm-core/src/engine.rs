@@ -241,6 +241,8 @@ enum Msg {
     Done(DownloadId, crate::Result<Completed>),
     /// The checksum check and after-download command finished.
     Checked(DownloadId, Completed, Result<(), String>),
+    /// A torrent stopped seeding (ratio reached, stopped, or failed).
+    SeedDone(DownloadId, Result<u64, String>),
 }
 
 /// Why an active download is being cancelled.
@@ -252,6 +254,13 @@ enum Stop {
     Remove {
         delete_file: bool,
     },
+}
+
+/// A finished torrent being seeded.
+struct Seeding {
+    cancel: CancellationToken,
+    /// Remove the download (deleting its files: `true`) once seeding stops.
+    remove: Option<bool>,
 }
 
 struct Active {
@@ -318,6 +327,7 @@ struct Actor {
     global: Arc<RateLimiter>,
     limits: HashMap<DownloadId, Arc<RateLimiter>>,
     active: HashMap<DownloadId, Active>,
+    seeding: HashMap<DownloadId, Seeding>,
     queues: HashMap<QueueId, QueueState>,
     tx: mpsc::UnboundedSender<Msg>,
     events: broadcast::Sender<Event>,
@@ -343,6 +353,10 @@ impl Actor {
                 // Interrupted by a crash or shutdown: run it again.
                 store.update_state(rec.id, DownloadState::Queued, None)?;
             }
+            if rec.state == DownloadState::Seeding {
+                // Seeding ends with the app; the download itself is complete.
+                store.update_state(rec.id, DownloadState::Completed, None)?;
+            }
             if rec.speed_limit.is_some() {
                 limits.insert(rec.id, Arc::new(RateLimiter::new(rec.speed_limit)));
             }
@@ -361,6 +375,7 @@ impl Actor {
             cfg,
             limits,
             active: HashMap::new(),
+            seeding: HashMap::new(),
             queues,
             tx,
             events,
@@ -451,6 +466,7 @@ impl Actor {
             Msg::Progress(id, p) => self.on_progress(id, p),
             Msg::Done(id, result) => self.on_done(id, result),
             Msg::Checked(id, done, result) => self.on_checked(id, &done, result),
+            Msg::SeedDone(id, result) => self.on_seed_done(id, result),
         }
     }
 
@@ -615,7 +631,8 @@ impl Actor {
     }
 
     fn add(&mut self, new: NewDownload) -> EngineResult<DownloadId> {
-        let url = parse_url(&new.url)?;
+        let torrent = crate::torrent::is_torrent_url(&new.url);
+        let url = if torrent { None } else { Some(parse_url(&new.url)?) };
         let save_dir = new.save_dir.map_or_else(|| self.cfg.default_dir.clone(), PathBuf::from);
         let mut headers = Vec::new();
         for (name, value) in
@@ -637,9 +654,13 @@ impl Actor {
         };
         let queue = new.queue.unwrap_or(QueueId::MAIN);
         self.queue_exists(queue)?;
-        let display =
-            if file_name.is_empty() { filename::choose(None, &url) } else { file_name.clone() };
-        let (url, save_dir) = (url.to_string(), save_dir.to_string_lossy().into_owned());
+        let display = match (&url, file_name.is_empty()) {
+            (_, false) => file_name.clone(),
+            (Some(url), true) => filename::choose(None, url),
+            (None, true) => crate::torrent::display_name(&new.url),
+        };
+        let url = url.map_or_else(|| new.url.trim().to_owned(), |u| u.to_string());
+        let save_dir = save_dir.to_string_lossy().into_owned();
         let id = self.store.insert_download(&NewRecord {
             url: url.clone(),
             save_dir: save_dir.clone(),
@@ -662,6 +683,11 @@ impl Actor {
     }
 
     fn pause(&mut self, id: DownloadId) -> EngineResult<()> {
+        if let Some(seed) = self.seeding.get(&id) {
+            // Stop seeding; `on_seed_done` marks it completed.
+            seed.cancel.cancel();
+            return Ok(());
+        }
         if let Some(active) = self.active.get_mut(&id) {
             if !matches!(active.stop, Some(Stop::Remove { .. })) {
                 active.stop = Some(Stop::Pause);
@@ -693,6 +719,12 @@ impl Actor {
     }
 
     fn remove(&mut self, id: DownloadId, delete_file: bool) -> EngineResult<()> {
+        if let Some(seed) = self.seeding.get_mut(&id) {
+            // Removed once the seeder lets go of the files.
+            seed.remove = Some(delete_file);
+            seed.cancel.cancel();
+            return Ok(());
+        }
         if let Some(active) = self.active.get_mut(&id) {
             // Finished in `on_done`, once the download has let go of its files.
             active.stop = Some(Stop::Remove { delete_file });
@@ -710,11 +742,17 @@ impl Actor {
                 dir.join(format!("{}{PART_SUFFIX}", rec.file_name)),
                 dir.join(format!("{}{PART_SUFFIX}.json", rec.file_name)),
             ];
-            if rec.state == DownloadState::Completed {
+            if matches!(rec.state, DownloadState::Completed | DownloadState::Seeding) {
                 paths.push(dir.join(&rec.file_name));
             }
             for path in paths {
-                if let Err(err) = std::fs::remove_file(&path)
+                // Torrents and streams use folders.
+                let result = if path.is_dir() {
+                    std::fs::remove_dir_all(&path)
+                } else {
+                    std::fs::remove_file(&path)
+                };
+                if let Err(err) = result
                     && err.kind() != std::io::ErrorKind::NotFound
                 {
                     tracing::warn!(path = %path.display(), %err, "could not delete file");
@@ -915,7 +953,47 @@ impl Actor {
         self.store.update_remote(id, Some(done.size), None, None)?;
         self.set_state(id, DownloadState::Completed, None)?;
         self.emit(Event::Completed { id, path: done.path.to_string_lossy().into_owned() });
+        if let Some(seed) = done.seed.clone()
+            && !self.closing
+        {
+            self.start_seeding(id, seed)?;
+        }
         Ok(())
+    }
+
+    /// Upload a finished torrent to other peers, in the background.
+    fn start_seeding(
+        &mut self,
+        id: DownloadId,
+        seed: Arc<crate::torrent::Seed>,
+    ) -> EngineResult<()> {
+        self.set_state(id, DownloadState::Seeding, None)?;
+        let cancel = CancellationToken::new();
+        self.seeding.insert(id, Seeding { cancel: cancel.clone(), remove: None });
+        let (downloader, tx) = (self.downloader.clone(), self.tx.clone());
+        tokio::spawn(async move {
+            let result = downloader.seed(&seed, &[], &cancel).await.map_err(|e| e.to_string());
+            let _ = tx.send(Msg::SeedDone(id, result));
+        });
+        Ok(())
+    }
+
+    fn on_seed_done(&mut self, id: DownloadId, result: Result<u64, String>) {
+        let Some(seed) = self.seeding.remove(&id) else { return };
+        match &result {
+            Ok(uploaded) => tracing::info!(%id, uploaded, "stopped seeding"),
+            Err(err) => tracing::warn!(%id, %err, "seeding stopped"),
+        }
+        let outcome = match (seed.remove, self.record(id)) {
+            (Some(delete_file), Ok(rec)) => self.finish_remove(&rec, delete_file),
+            (None, Ok(rec)) if rec.state == DownloadState::Seeding => {
+                self.set_state(id, DownloadState::Completed, None)
+            }
+            _ => Ok(()),
+        };
+        if let Err(err) = outcome {
+            tracing::error!(%id, %err, "could not record the end of seeding");
+        }
     }
 
     fn check_schedule(&mut self) {
@@ -955,6 +1033,9 @@ impl Actor {
     fn close(&mut self) {
         self.closing = true;
         self.stop_all(Stop::Requeue);
+        for seed in self.seeding.values() {
+            seed.cancel.cancel();
+        }
     }
 
     fn stop_all(&mut self, stop: Stop) {

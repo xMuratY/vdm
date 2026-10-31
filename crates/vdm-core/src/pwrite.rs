@@ -30,6 +30,31 @@ pub(crate) fn write_all_at(file: &File, mut buf: &[u8], mut offset: u64) -> io::
     Ok(())
 }
 
+/// Read exactly `buf.len()` bytes at `offset` without moving a shared cursor.
+#[cfg(unix)]
+pub(crate) fn read_exact_at(file: &File, buf: &mut [u8], offset: u64) -> io::Result<()> {
+    std::os::unix::fs::FileExt::read_exact_at(file, buf, offset)
+}
+
+/// Read exactly `buf.len()` bytes at `offset` without moving a shared cursor.
+#[cfg(windows)]
+pub(crate) fn read_exact_at(file: &File, mut buf: &mut [u8], mut offset: u64) -> io::Result<()> {
+    use std::os::windows::fs::FileExt;
+
+    while !buf.is_empty() {
+        match file.seek_read(buf, offset) {
+            Ok(0) => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
+            Ok(n) => {
+                buf = &mut buf[n..];
+                offset += n as u64;
+            }
+            Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

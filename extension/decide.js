@@ -23,6 +23,11 @@ function isHttpUrl(url) {
   }
 }
 
+// True for BitTorrent magnet links (magnet:?xt=urn:btih:...).
+function isMagnetUrl(url) {
+  return typeof url === "string" && /^magnet:\?(.*&)?xt=urn:btih:/i.test(url.trim());
+}
+
 // Lowercased hostname of a URL, or "" if it cannot be parsed.
 function hostOf(url) {
   try {
@@ -172,6 +177,7 @@ const VDM = {
   DEFAULT_SETTINGS,
   MAX_STREAMS_PER_TAB,
   isHttpUrl,
+  isMagnetUrl,
   shouldCapture,
   cookieHeader,
   baseName,

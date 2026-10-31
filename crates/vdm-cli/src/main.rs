@@ -81,6 +81,9 @@ struct HttpArgs {
     /// Username and password for the URL's site (HTTP Basic auth or FTP login).
     #[arg(long, value_name = "USER:PASSWORD", value_parser = parse_login)]
     login: Option<(String, String)>,
+    /// Torrents: never upload to other peers.
+    #[arg(long)]
+    download_only: bool,
 }
 
 fn parse_login(s: &str) -> Result<(String, String), String> {
@@ -258,7 +261,12 @@ fn downloader(
     url: &str,
     restart_if_changed: bool,
 ) -> vdm_core::Result<Downloader> {
-    let mut opts = Options { restart_if_changed, proxy: http.proxy.clone(), ..Options::default() };
+    let mut opts = Options {
+        restart_if_changed,
+        proxy: http.proxy.clone(),
+        torrent_upload: !http.download_only,
+        ..Options::default()
+    };
     opts.retry.max_attempts = http.retries.saturating_add(1);
     let host = vdm_core::url_host(url);
     if let (Some((username, password)), Some(site)) = (&http.login, host) {

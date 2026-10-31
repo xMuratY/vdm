@@ -221,7 +221,7 @@ impl Downloader {
         let size = tokio::fs::metadata(&path).await.at(&path)?.len();
         observer.progress(Progress { downloaded: size, total: Some(size) });
         tracing::info!(path = %path.display(), size, "stream saved");
-        Ok(Completed { path, size, resumed_from: have_bytes, restarted: false })
+        Ok(Completed { path, size, resumed_from: have_bytes, restarted: false, seed: None })
     }
 
     /// Fetch the playlist/manifest (and, for HLS masters, the chosen variant

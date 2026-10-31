@@ -62,6 +62,7 @@ nothing_here = "항목 없음"
 nothing_here_hint = "“{filter}”에 다운로드가 없습니다."
 
 [state]
+seeding = "시딩 중"
 queued = "대기 중"
 probing = "확인 중"
 downloading = "다운로드 중"
@@ -84,6 +85,7 @@ remove = "제거"
 add = "추가"
 
 [add]
+open_torrent = ".torrent 열기…"
 title = "다운로드 추가"
 subtitle = "웹 또는 FTP 링크, 동영상 스트림(.m3u8, .mpd)"
 address = "주소"
@@ -102,6 +104,7 @@ bad_connections = "연결 수는 1에서 {max} 사이여야 합니다."
 bad_checksum = "체크섬: {error}"
 
 [settings]
+torrent_download_only = "토런트: 다운로드만 (다른 피어에 업로드하지 않음)"
 ask_browser = "브라우저에서 시작하는 다운로드는 시작 전에 묻기"
 clipboard_always = "Vibe가 최소화되었거나 트레이에 있을 때도 묻기"
 title = "설정"
@@ -257,6 +260,7 @@ open_folder = "폴더를 열 수 없습니다: {error}"
 export_failed = "내보낼 수 없습니다 ({path}): {error}"
 
 [files]
+torrent_files = "토런트 파일"
 import_title = "링크 가져오기"
 text_files = "텍스트 파일"
 export_title = "다운로드 목록 내보내기"

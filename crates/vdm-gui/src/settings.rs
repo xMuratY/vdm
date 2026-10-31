@@ -33,6 +33,8 @@ pub struct Settings {
     pub clipboard_always: bool,
     /// Downloads the browser extension hands over open in the Add dialog first.
     pub ask_browser_downloads: bool,
+    /// Torrents never upload to other peers, and don't seed when done.
+    pub torrent_download_only: bool,
     /// Show a desktop notification when a download finishes or fails.
     pub notify: bool,
     /// Closing the window hides it to the tray instead of quitting (where a tray exists).
@@ -69,6 +71,7 @@ impl Default for Settings {
             watch_clipboard: true,
             clipboard_always: false,
             ask_browser_downloads: true,
+            torrent_download_only: false,
             notify: true,
             close_to_tray: true,
             use_categories: true,
@@ -192,6 +195,7 @@ pub struct SettingsForm {
     pub watch_clipboard: bool,
     pub clipboard_always: bool,
     pub ask_browser_downloads: bool,
+    pub torrent_download_only: bool,
     pub notify: bool,
     pub close_to_tray: bool,
     pub use_categories: bool,
@@ -217,6 +221,7 @@ impl SettingsForm {
             watch_clipboard: s.watch_clipboard,
             clipboard_always: s.clipboard_always,
             ask_browser_downloads: s.ask_browser_downloads,
+            torrent_download_only: s.torrent_download_only,
             notify: s.notify,
             close_to_tray: s.close_to_tray,
             use_categories: s.use_categories,
@@ -278,6 +283,7 @@ impl SettingsForm {
             watch_clipboard: self.watch_clipboard,
             clipboard_always: self.clipboard_always,
             ask_browser_downloads: self.ask_browser_downloads,
+            torrent_download_only: self.torrent_download_only,
             notify: self.notify,
             close_to_tray: self.close_to_tray,
             use_categories: self.use_categories,
@@ -586,6 +592,7 @@ mod tests {
             watch_clipboard: false,
             clipboard_always: true,
             ask_browser_downloads: false,
+            torrent_download_only: true,
             notify: false,
             close_to_tray: false,
             use_categories: false,

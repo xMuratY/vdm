@@ -62,6 +62,7 @@ nothing_here = "項目がありません"
 nothing_here_hint = "「{filter}」にダウンロードはありません。"
 
 [state]
+seeding = "シード中"
 queued = "待機中"
 probing = "確認中"
 downloading = "ダウンロード中"
@@ -84,6 +85,7 @@ remove = "削除"
 add = "追加"
 
 [add]
+open_torrent = ".torrent を開く…"
 title = "ダウンロードを追加"
 subtitle = "Web または FTP のリンク、もしくは動画ストリーム (.m3u8、.mpd)"
 address = "アドレス"
@@ -102,6 +104,7 @@ bad_connections = "接続数は 1 ～ {max} で指定してください。"
 bad_checksum = "チェックサム: {error}"
 
 [settings]
+torrent_download_only = "Torrent: ダウンロードのみ (他のピアにはアップロードしない)"
 ask_browser = "ブラウザーからのダウンロードを開始する前に確認する"
 clipboard_always = "Vibe を最小化中またはトレイ内にいる場合も提案する"
 title = "設定"
@@ -257,6 +260,7 @@ open_folder = "フォルダーを開けませんでした: {error}"
 export_failed = "{path} にエクスポートできませんでした: {error}"
 
 [files]
+torrent_files = "Torrent ファイル"
 import_title = "リンクをインポート"
 text_files = "テキスト ファイル"
 export_title = "ダウンロード リストをエクスポート"

@@ -62,6 +62,7 @@ nothing_here = "Nada por aqui"
 nothing_here_hint = "Nenhum download em “{filter}”."
 
 [state]
+seeding = "Semeando"
 queued = "Na fila"
 probing = "Verificando link"
 downloading = "Baixando"
@@ -84,6 +85,7 @@ remove = "Remover"
 add = "Adicionar"
 
 [add]
+open_torrent = "Abrir .torrent…"
 title = "Adicionar download"
 subtitle = "Um link da web ou FTP, ou um fluxo de vídeo (.m3u8, .mpd)"
 address = "Endereço"
@@ -102,6 +104,7 @@ bad_connections = "O número de conexões deve ser de 1 a {max}."
 bad_checksum = "Checksum: {error}"
 
 [settings]
+torrent_download_only = "Torrents: somente baixar (nunca enviar a outros peers)"
 ask_browser = "Perguntar antes de iniciar downloads do navegador"
 clipboard_always = "Também com o Vibe minimizado ou na bandeja"
 title = "Configurações"
@@ -257,6 +260,7 @@ open_folder = "Não foi possível abrir a pasta: {error}"
 export_failed = "Não foi possível exportar para {path}: {error}"
 
 [files]
+torrent_files = "Arquivos torrent"
 import_title = "Importar links"
 text_files = "Arquivos de texto"
 export_title = "Exportar lista de downloads"

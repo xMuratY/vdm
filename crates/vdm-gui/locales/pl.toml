@@ -62,6 +62,7 @@ nothing_here = "Nic tu nie ma"
 nothing_here_hint = "Brak pobrań w „{filter}”."
 
 [state]
+seeding = "Seedowanie"
 queued = "W kolejce"
 probing = "Sprawdzanie"
 downloading = "Pobieranie"
@@ -84,6 +85,7 @@ remove = "Usuń"
 add = "Dodaj"
 
 [add]
+open_torrent = "Otwórz .torrent…"
 title = "Dodaj pobieranie"
 subtitle = "Link internetowy lub FTP albo strumień wideo (.m3u8, .mpd)"
 address = "Adres"
@@ -102,6 +104,7 @@ bad_connections = "Liczba połączeń musi mieścić się w zakresie od 1 do {ma
 bad_checksum = "Suma kontrolna: {error}"
 
 [settings]
+torrent_download_only = "Torrenty: tylko pobieranie (nigdy nie wysyłaj do innych peerów)"
 ask_browser = "Pytaj przed rozpoczęciem pobierania z przeglądarki"
 clipboard_always = "Także gdy Vibe jest zminimalizowany lub w zasobniku"
 title = "Ustawienia"
@@ -257,6 +260,7 @@ open_folder = "Nie można otworzyć folderu: {error}"
 export_failed = "Nie można wyeksportować do {path}: {error}"
 
 [files]
+torrent_files = "Pliki torrent"
 import_title = "Importuj linki"
 text_files = "Pliki tekstowe"
 export_title = "Eksportuj listę pobrań"

@@ -62,6 +62,7 @@ nothing_here = "Здесь пусто"
 nothing_here_hint = "Нет загрузок в разделе «{filter}»."
 
 [state]
+seeding = "Раздача"
 queued = "В очереди"
 probing = "Проверка"
 downloading = "Загрузка"
@@ -84,6 +85,7 @@ remove = "Удалить"
 add = "Добавить"
 
 [add]
+open_torrent = "Открыть .torrent…"
 title = "Добавить загрузку"
 subtitle = "Веб-ссылка или FTP-ссылка либо видеопоток (.m3u8, .mpd)"
 address = "Адрес"
@@ -102,6 +104,7 @@ bad_connections = "Число соединений должно быть от 1 
 bad_checksum = "Контрольная сумма: {error}"
 
 [settings]
+torrent_download_only = "Торренты: только загрузка (ничего не отдавать другим пирам)"
 ask_browser = "Спрашивать перед началом загрузок из браузера"
 clipboard_always = "Также когда Vibe свёрнут или находится в трее"
 title = "Настройки"
@@ -257,6 +260,7 @@ open_folder = "Не удалось открыть папку: {error}"
 export_failed = "Не удалось экспортировать в {path}: {error}"
 
 [files]
+torrent_files = "Файлы торрентов"
 import_title = "Импорт ссылок"
 text_files = "Текстовые файлы"
 export_title = "Экспорт списка загрузок"

@@ -99,12 +99,15 @@ pub enum DownloadState {
     Verifying,
     Completed,
     Failed,
+    /// A finished torrent uploading to other peers.
+    Seeding,
 }
 
 impl DownloadState {
-    /// True once the download will make no further progress on its own.
+    /// True once the download will make no further progress on its own
+    /// (a seeding torrent is complete; only its upload goes on).
     pub fn is_terminal(self) -> bool {
-        matches!(self, Self::Completed | Self::Failed)
+        matches!(self, Self::Completed | Self::Failed | Self::Seeding)
     }
 }
 

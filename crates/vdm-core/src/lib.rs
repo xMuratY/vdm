@@ -25,6 +25,7 @@ mod pwrite;
 pub mod schedule;
 mod segment;
 mod segmented;
+pub mod torrent;
 
 pub use auth::{ProxySetting, SiteLogin, login_for, url_host};
 pub use checksum::Checksum;
@@ -40,6 +41,7 @@ pub use media::{MediaInfo, MediaKind};
 pub use probe::ProbeInfo;
 pub use schedule::Schedule;
 pub use tokio_util::sync::CancellationToken;
+pub use torrent::{Seed, is_torrent_url};
 pub use vdm_media::{Quality, Variant, is_media_url};
 pub use vdm_proto as proto;
 

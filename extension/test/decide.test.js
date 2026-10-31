@@ -451,3 +451,11 @@ test("shortStreamLabel: unparseable or non-http input is returned unchanged", ()
   assert.equal(VDM.shortStreamLabel("blob:https://x/1"), "blob:https://x/1");
   assert.equal(VDM.shortStreamLabel(undefined), "");
 });
+
+test("isMagnetUrl: BitTorrent magnet links only", () => {
+  assert.equal(VDM.isMagnetUrl("magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a&dn=x"), true);
+  assert.equal(VDM.isMagnetUrl("MAGNET:?dn=x&xt=urn:btih:YEX6DQDLXISUVHOJ6UM3GNNKPQJWPKEK"), true);
+  assert.equal(VDM.isMagnetUrl("magnet:?xt=urn:sha1:abc"), false);
+  assert.equal(VDM.isMagnetUrl("https://example.com/magnet:?xt=urn:btih:1"), false);
+  assert.equal(VDM.isMagnetUrl(undefined), false);
+});
