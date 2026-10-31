@@ -13,8 +13,8 @@ All notable changes to Vibe Download Manager are listed here. The format follows
   off in Settings to start them right away as before.
 - Links copied to the clipboard can be offered even while Vibe is minimized or in the
   tray (Settings, off by default); the window comes forward with the Add dialog.
-- Torrents: magnet links and `.torrent` files, over HTTP and UDP trackers with peer
-  exchange, multi-file torrents, rarest-first downloading with every piece checked,
+- Torrents: magnet links and `.torrent` files, finding peers through HTTP and UDP
+  trackers, peer exchange and the DHT; multi-file torrents, rarest-first downloading with every piece checked,
   and resume. A built-in client, with no new libraries.
 - Torrent "download only" mode (Settings): never upload to other peers. Otherwise
   finished torrents seed until they've uploaded their size, or until paused.

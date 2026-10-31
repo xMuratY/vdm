@@ -5,6 +5,7 @@
 //! picking, SHA-1 checks of every piece, and resume across runs.
 
 pub(crate) mod bencode;
+pub mod dht;
 pub(crate) mod metainfo;
 pub(crate) mod wire;
 

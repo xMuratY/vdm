@@ -395,7 +395,9 @@ pub(crate) fn parse_pex(payload: &[u8]) -> Vec<SocketAddr> {
 
 /// 6-byte entries: IPv4 address and port.
 pub(crate) fn compact_peers_v4(b: &[u8]) -> Vec<SocketAddr> {
-    b.chunks_exact(6)
+    b.as_chunks::<6>()
+        .0
+        .iter()
         .map(|c| {
             let ip = Ipv4Addr::new(c[0], c[1], c[2], c[3]);
             SocketAddr::new(IpAddr::V4(ip), u16::from_be_bytes([c[4], c[5]]))
@@ -406,7 +408,9 @@ pub(crate) fn compact_peers_v4(b: &[u8]) -> Vec<SocketAddr> {
 
 /// 18-byte entries: IPv6 address and port.
 pub(crate) fn compact_peers_v6(b: &[u8]) -> Vec<SocketAddr> {
-    b.chunks_exact(18)
+    b.as_chunks::<18>()
+        .0
+        .iter()
         .filter_map(|c| {
             let ip: [u8; 16] = c[..16].try_into().ok()?;
             let addr =

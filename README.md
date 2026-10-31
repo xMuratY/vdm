@@ -48,7 +48,8 @@ finds, and stays out of the way in the tray.
 **Torrents**
 - Magnet links and `.torrent` files (from the web or your disk), with HTTP and UDP trackers, peer exchange and multi-file torrents. Every piece is checked, and torrents resume like any other download.
 - **Download only** in Settings: never upload to other peers. Otherwise Vibe shares while downloading and seeds afterwards until it has uploaded as much as it downloaded (or you pause it).
-- A small client of its own: no extra libraries. Magnet links need at least one tracker for now (DHT is coming).
+- Finds peers through trackers, peer exchange and the DHT, so magnet links work without trackers too.
+- A small client of its own: no extra libraries.
 
 **Browser integration**
 - Extension for Chrome, Edge, Brave and Firefox. It takes over browser downloads, with the right cookies, referrer and user agent, and Vibe asks in its own window before starting each one: the dialog shows the size and lets you change the folder or name (turn this off in Settings).

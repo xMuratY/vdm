@@ -276,9 +276,10 @@ impl Downloader {
 
     /// Fetch a magnet's info dictionary from peers found by its trackers and the link.
     async fn magnet_metadata(&self, m: &Magnet, cancel: &CancellationToken) -> Result<Metainfo> {
-        if m.trackers.is_empty() && m.peers.is_empty() {
+        let dht = self.options().torrent_dht_bootstrap.clone();
+        if m.trackers.is_empty() && m.peers.is_empty() && dht.is_empty() {
             return Err(torrent_err(
-                "this magnet link lists no trackers, and Vibe can't search the DHT yet; use the .torrent file instead",
+                "this magnet link lists no trackers and the DHT is off; use the .torrent file instead",
             ));
         }
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
@@ -320,6 +321,20 @@ impl Downloader {
                     }
                 }
             });
+        }
+        if !dht.is_empty() {
+            let tx = tx.clone();
+            lookups.spawn(dht_loop(
+                m.info_hash,
+                dht,
+                stop.clone(),
+                Duration::from_secs(30),
+                move |peers| {
+                    for p in peers {
+                        let _ = tx.send(p);
+                    }
+                },
+            ));
         }
         drop(tx);
         tracing::info!(hash = %hex(&m.info_hash), "fetching the torrent's details from peers");
@@ -378,6 +393,13 @@ impl Downloader {
             listener,
             &mut tasks,
         );
+        let dht = self.options().torrent_dht_bootstrap.clone();
+        if !info.private && !dht.is_empty() {
+            let (hash, stop, sink) = (torrent.info_hash, swarm.cancel.clone(), swarm.clone());
+            tasks.spawn(dht_loop(hash, dht, stop, Duration::from_secs(5 * 60), move |p| {
+                sink.add_peers(p)
+            }));
+        }
 
         let total = info.total_length();
         let mut tick = tokio::time::interval(PROGRESS_EVERY);
@@ -485,6 +507,31 @@ impl Downloader {
         tasks.abort_all();
         session::announce_event(&swarm, self.client(), &torrent.trackers, Event::Stopped).await;
         Ok(swarm.snapshot().uploaded)
+    }
+}
+
+/// Look up peers in the DHT now and every `every` until `stop`.
+async fn dht_loop(
+    info_hash: metainfo::Hash,
+    bootstrap: Vec<String>,
+    stop: CancellationToken,
+    every: Duration,
+    mut found: impl FnMut(Vec<SocketAddr>) + Send,
+) {
+    loop {
+        let lookup =
+            super::dht::get_peers(info_hash, &bootstrap, Duration::from_secs(60), &mut found);
+        tokio::select! {
+            () = stop.cancelled() => return,
+            r = lookup => match r {
+                Ok(n) => tracing::debug!(peers = n, "DHT lookup done"),
+                Err(err) => tracing::debug!(%err, "DHT lookup failed"),
+            },
+        }
+        tokio::select! {
+            () = stop.cancelled() => return,
+            () = tokio::time::sleep(every) => {}
+        }
     }
 }
 

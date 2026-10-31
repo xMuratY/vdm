@@ -108,8 +108,7 @@ pub(crate) fn parse_info(info_bytes: &[u8]) -> Result<Info, String> {
     if pieces.is_empty() || pieces.len() % 20 != 0 {
         return Err("the piece hashes are malformed".into());
     }
-    let pieces: Vec<Hash> =
-        pieces.chunks_exact(20).map(|c| c.try_into().unwrap_or([0; 20])).collect();
+    let pieces: Vec<Hash> = pieces.as_chunks::<20>().0.to_vec();
     let piece_length = info
         .get("piece length")
         .and_then(Value::as_int)

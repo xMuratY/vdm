@@ -98,8 +98,14 @@ fn percent_decode(s: &str) -> Vec<u8> {
 }
 
 fn options(upload: bool) -> Options {
-    // Test seeders keep going however much they upload.
-    Options { torrent_upload: upload, torrent_seed_ratio: None, ..Options::default() }
+    // Test seeders keep going however much they upload, and nothing here
+    // reaches the real DHT.
+    Options {
+        torrent_upload: upload,
+        torrent_seed_ratio: None,
+        torrent_dht_bootstrap: Vec::new(),
+        ..Options::default()
+    }
 }
 
 fn content(len: usize, seed: u8) -> Vec<u8> {
@@ -398,4 +404,70 @@ async fn a_paused_torrent_resumes_where_it_stopped() {
     assert!(done.resumed_from >= 200_000, "resumed from {}", done.resumed_from);
     assert_eq!(std::fs::read(&done.path).unwrap(), data);
     assert!(!dir.path().join("big.bin.vdmpart").exists());
+}
+
+/// A DHT node that answers every get_peers with `peer`.
+async fn fake_dht_node(peer: SocketAddr) -> SocketAddr {
+    let socket = tokio::net::UdpSocket::bind("127.0.0.1:0").await.unwrap();
+    let addr = socket.local_addr().unwrap();
+    tokio::spawn(async move {
+        let mut buf = [0u8; 1500];
+        loop {
+            let Ok((n, from)) = socket.recv_from(&mut buf).await else { return };
+            let query = &buf[..n];
+            // The transaction id: "1:t" then a length-prefixed string.
+            let Some(at) = query.windows(3).position(|w| w == b"1:t") else { continue };
+            let rest = &query[at + 3..];
+            let Some(colon) = rest.iter().position(|&b| b == b':') else { continue };
+            let len: usize = std::str::from_utf8(&rest[..colon]).unwrap().parse().unwrap();
+            let tid = &rest[colon + 1..colon + 1 + len];
+            let SocketAddr::V4(v4) = peer else { return };
+            let mut reply = b"d1:rd2:id20:".to_vec();
+            reply.extend_from_slice(&[0x42; 20]);
+            reply.extend_from_slice(b"6:valuesl6:");
+            reply.extend_from_slice(&v4.ip().octets());
+            reply.extend_from_slice(&v4.port().to_be_bytes());
+            reply.extend_from_slice(format!("ee1:t{len}:").as_bytes());
+            reply.extend_from_slice(tid);
+            reply.extend_from_slice(b"1:y1:re");
+            let _ = socket.send_to(&reply, from).await;
+        }
+    });
+    addr
+}
+
+#[tokio::test]
+async fn a_magnet_without_trackers_finds_peers_in_the_dht() {
+    let (tracker_url, peers) = tracker().await;
+    let seed_dir = tempfile::tempdir().unwrap();
+    let data = content(200_000, 6);
+    let stop = CancellationToken::new();
+    // The seeder announces to a tracker only so the test learns its port.
+    let torrent =
+        start_seeder(seed_dir.path(), "dht.bin", &[("dht.bin", &data)], &tracker_url, stop.clone())
+            .await;
+    wait_for_peers(&peers, 1).await;
+    let seeder = *peers.lock().unwrap().values().next().unwrap();
+    let node = fake_dht_node(seeder).await;
+
+    let magnet = format!("magnet:?xt=urn:btih:{}&dn=dht.bin", info_hash_hex(&torrent));
+    let dir = tempfile::tempdir().unwrap();
+    let dl = Downloader::new(Options {
+        torrent_dht_bootstrap: vec![node.to_string()],
+        ..options(false)
+    })
+    .unwrap();
+    let done = tokio::time::timeout(
+        Duration::from_secs(30),
+        dl.download(
+            DownloadRequest::new(&magnet, dir.path()),
+            |_: Progress| {},
+            CancellationToken::new(),
+        ),
+    )
+    .await
+    .expect("finished in time")
+    .unwrap();
+    stop.cancel();
+    assert_eq!(std::fs::read(&done.path).unwrap(), data);
 }

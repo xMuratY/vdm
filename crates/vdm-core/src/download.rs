@@ -175,6 +175,9 @@ pub struct Options {
     /// Stop seeding once this many times the torrent's size was uploaded;
     /// `None` seeds until stopped.
     pub torrent_seed_ratio: Option<f64>,
+    /// DHT entry points (host:port) for finding peers without trackers;
+    /// empty turns the DHT off. Never used for private torrents.
+    pub torrent_dht_bootstrap: Vec<String>,
 }
 
 impl Default for Options {
@@ -197,6 +200,7 @@ impl Default for Options {
             torrent_port: 0,
             torrent_max_peers: 50,
             torrent_seed_ratio: Some(1.0),
+            torrent_dht_bootstrap: crate::torrent::dht::BOOTSTRAP.map(String::from).to_vec(),
         }
     }
 }
