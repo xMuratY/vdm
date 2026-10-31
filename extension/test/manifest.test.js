@@ -34,7 +34,7 @@ test("manifest is MV3 with the expected name and version", () => {
   assert.equal(m.manifest_version, 3);
   assert.equal(m.name, "__MSG_extName__");
   assert.equal(m.default_locale, "en");
-  assert.equal(m.version, "0.1.0");
+  assert.equal(m.version, "0.2.0");
   assert.ok(m.description && m.description.length > 0);
 });
 

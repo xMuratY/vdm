@@ -4,7 +4,9 @@ All notable changes to Vibe Download Manager are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.2.0 - 2026-10-30
+
+Torrents, and Vibe asks before starting what your browser hands over.
 
 ### Added
 - Downloads the browser extension hands over open in Vibe's window first, with the
@@ -14,13 +16,15 @@ All notable changes to Vibe Download Manager are listed here. The format follows
 - Links copied to the clipboard can be offered even while Vibe is minimized or in the
   tray (Settings, off by default); the window comes forward with the Add dialog.
 - Torrents: magnet links and `.torrent` files, finding peers through HTTP and UDP
-  trackers, peer exchange and the DHT; multi-file torrents, rarest-first downloading with every piece checked,
-  and resume. A built-in client, with no new libraries.
-- Torrent "download only" mode (Settings): never upload to other peers. Otherwise
-  finished torrents seed until they've uploaded their size, or until paused.
+  trackers, peer exchange and the DHT; multi-file torrents, rarest-first downloading
+  with every piece checked, and resume. A built-in client, with no new libraries.
+- Torrents download only by default: nothing is uploaded to other peers. Turn that
+  off in Settings to share while downloading; finished torrents then seed until
+  they've uploaded their size, or until paused.
 - The Add dialog can open a `.torrent` file; the browser extension's "Download with
   Vibe" takes magnet links; the Windows installer can make Vibe open magnet links and
-  `.torrent` files; and `vdm get --download-only` does torrents from the command line.
+  `.torrent` files; and `vdm get` does torrents from the command line (`--upload`
+  to share while downloading).
 
 ## 0.1.0 - 2026-10-25
 

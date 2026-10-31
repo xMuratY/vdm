@@ -33,7 +33,7 @@ pub struct Settings {
     pub clipboard_always: bool,
     /// Downloads the browser extension hands over open in the Add dialog first.
     pub ask_browser_downloads: bool,
-    /// Torrents never upload to other peers, and don't seed when done.
+    /// Torrents never upload to other peers, and don't seed when done (the default).
     pub torrent_download_only: bool,
     /// Show a desktop notification when a download finishes or fails.
     pub notify: bool,
@@ -71,7 +71,7 @@ impl Default for Settings {
             watch_clipboard: true,
             clipboard_always: false,
             ask_browser_downloads: true,
-            torrent_download_only: false,
+            torrent_download_only: true,
             notify: true,
             close_to_tray: true,
             use_categories: true,
@@ -592,7 +592,7 @@ mod tests {
             watch_clipboard: false,
             clipboard_always: true,
             ask_browser_downloads: false,
-            torrent_download_only: true,
+            torrent_download_only: false,
             notify: false,
             close_to_tray: false,
             use_categories: false,

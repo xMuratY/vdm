@@ -47,7 +47,7 @@ finds, and stays out of the way in the tray.
 
 **Torrents**
 - Magnet links and `.torrent` files (from the web or your disk), with HTTP and UDP trackers, peer exchange and multi-file torrents. Every piece is checked, and torrents resume like any other download.
-- **Download only** in Settings: never upload to other peers. Otherwise Vibe shares while downloading and seeds afterwards until it has uploaded as much as it downloaded (or you pause it).
+- **Download only** by default: nothing is uploaded to other peers. Turn it off in Settings to share while downloading and seed afterwards until Vibe has uploaded as much as it downloaded (or you pause it).
 - Finds peers through trackers, peer exchange and the DHT, so magnet links work without trackers too.
 - A small client of its own: no extra libraries.
 
@@ -163,8 +163,8 @@ vdm get --limit 2M --checksum sha256:9f86d0… --proxy socks5://127.0.0.1:1080 h
 # See what a server reports before downloading
 vdm probe https://example.com/file.zip
 
-# Torrents: a magnet link or a .torrent file, without uploading to other peers
-vdm get --download-only "magnet:?xt=urn:btih:…&tr=udp://tracker.example:1337"
+# Torrents: a magnet link or a .torrent file (add --upload to share while downloading)
+vdm get "magnet:?xt=urn:btih:…&tr=udp://tracker.example:1337"
 ```
 
 Run `vdm --help` or `vdm get --help` for every option.

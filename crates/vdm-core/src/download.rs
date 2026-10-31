@@ -166,7 +166,8 @@ pub struct Options {
     /// Credentials sent to matching sites (HTTP Basic auth, FTP login).
     pub logins: Vec<SiteLogin>,
     /// Torrents upload to other peers while downloading and seed afterwards
-    /// (until a ratio of 1). Off: download only, never upload.
+    /// (until [`torrent_seed_ratio`](Self::torrent_seed_ratio)). Off (the
+    /// default): download only, never upload.
     pub torrent_upload: bool,
     /// Port for incoming torrent peers when uploading; 0 picks one.
     pub torrent_port: u16,
@@ -196,7 +197,7 @@ impl Default for Options {
             remux: true,
             proxy: ProxySetting::System,
             logins: Vec::new(),
-            torrent_upload: true,
+            torrent_upload: false,
             torrent_port: 0,
             torrent_max_peers: 50,
             torrent_seed_ratio: Some(1.0),

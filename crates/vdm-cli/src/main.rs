@@ -81,9 +81,10 @@ struct HttpArgs {
     /// Username and password for the URL's site (HTTP Basic auth or FTP login).
     #[arg(long, value_name = "USER:PASSWORD", value_parser = parse_login)]
     login: Option<(String, String)>,
-    /// Torrents: never upload to other peers.
+    /// Torrents: share with other peers while downloading (by default
+    /// nothing is uploaded). `vdm` exits when done, so it never seeds.
     #[arg(long)]
-    download_only: bool,
+    upload: bool,
 }
 
 fn parse_login(s: &str) -> Result<(String, String), String> {
@@ -264,7 +265,7 @@ fn downloader(
     let mut opts = Options {
         restart_if_changed,
         proxy: http.proxy.clone(),
-        torrent_upload: !http.download_only,
+        torrent_upload: http.upload,
         ..Options::default()
     };
     opts.retry.max_attempts = http.retries.saturating_add(1);
